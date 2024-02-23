@@ -20,17 +20,17 @@ def folders_from_path(root):
     folders = []
     for i in range(min_f, max_f+1):
         if i <= 9:
-            folders.append(root + "{:02d}".format(i))
+            folders.append(os.path.join(root, "{:02d}".format(i)))
         else:
-            folders.append(root + "{:d}".format(i))
+            folders.append(os.path.join(root, "{:d}".format(i)))
     
     return folders
 
 def outcars_from_folders(folders):
-    return [Outcar(folder + '/OUTCAR') for folder in folders]
+    return [Outcar(os.path.join(folder, 'OUTCAR')) for folder in folders]
     
 def structures_from_folders(folders):
-    return [Structure.from_file(folder + '/CONTCAR') for folder in folders]
+    return [Structure.from_file(os.path.join(folder, 'CONTCAR')) for folder in folders]
 
 def outcars_and_structures_from_path(root):
     folders = folders_from_path(root)
