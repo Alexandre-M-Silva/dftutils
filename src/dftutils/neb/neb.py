@@ -53,7 +53,7 @@ class NebPlotter:
 
             ax.plot(x, y, '-', alpha=1/3)
             ax.plot(neb.data["Distances01"], neb.data["Energies"], 'o', color=plt.gca().lines[-1].get_color(), label=neb.name)
-        ax.legend(frameon=False, loc='upper right', bbox_anchor=(1.02, 1.0))
+        ax.legend(frameon=False, loc='upper right', bbox_to_anchor=(1.02, 1.0))
         
         if save:
             assert(format == 'png' or format == 'svg')
