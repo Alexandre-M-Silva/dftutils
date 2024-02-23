@@ -19,6 +19,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+  'pymatgen',
+  'matplotlib',
+  'pandas',
+]
 
 [project.urls]
 Homepage = "https://github.com/Alexandre-M-Silva/dftutils"
