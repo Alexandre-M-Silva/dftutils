@@ -30,6 +30,9 @@ def outcars_from_folders(folders):
     return [Outcar(os.path.join(folder, 'OUTCAR')) for folder in folders]
     
 def structures_from_folders(folders):
+    for i, folder in enumerate(folders):
+        if not os.path.exists(folder):
+            folders[i].replace('CONTCAR', 'POSCAR')
     return [Structure.from_file(os.path.join(folder, 'CONTCAR')) for folder in folders]
 
 def outcars_and_structures_from_path(root):
