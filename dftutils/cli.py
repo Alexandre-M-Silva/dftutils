@@ -51,7 +51,7 @@ def dftutils():
     type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
-    "--switch",
+    "--save",
     "-s",
     help="Highlight midpoint switch pathway.",
     required=False,
@@ -59,15 +59,32 @@ def dftutils():
     is_flag=True,
     show_default=True,
 )
-def polarization(path, switch, save, config):
+@click.option(
+    "--branch",
+    "-b",
+    help="Highlight midpoint switch branch.",
+    required=False,
+    default=False,
+    is_flag=True,
+    show_default=True,
+)
+@click.option(
+    "--config",
+    "-conf",
+    help="Config file for advanced settings.",
+    default=None,
+    type=click.Path(exists=True, dir_okay=False),
+    show_default=True,
+)
+def polarization(path, save, branch, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
     if user_settings:
         valid_args = [
             "path",
-            "switch",
             "save",
+            "branch",
             "config",
         ]
         for key in func_args:
@@ -80,4 +97,4 @@ def polarization(path, switch, save, config):
                 user_settings.pop(key)
 
     pol = PolarizationPlotter(path)
-    pol.plot(switch, save)
+    pol.plot(branch, save)
