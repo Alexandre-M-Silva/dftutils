@@ -48,7 +48,7 @@ def dftutils():
     "-p",
     help="Path to polarization calculation.",
     required=True,
-    type=click.Path(exists=True, dir_okay=False),
+    type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
     "--switch",
@@ -81,4 +81,3 @@ def polarization(path, switch, save, config):
 
     pol = PolarizationPlotter(path)
     pol.plot(switch, save)
-    
