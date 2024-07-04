@@ -131,7 +131,7 @@ class PolarizationPlotter:
         return 0.5*(self.switch[-1] - self.switch[0])
     
     def plot(self, show_switch=True):
-        plt.style.use('./dftutils.mplstyle')
+        plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
 
         fig, ax = plt.subplots()
         ax.set_xlabel('Image')
