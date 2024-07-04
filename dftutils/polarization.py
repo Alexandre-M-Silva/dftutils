@@ -125,7 +125,7 @@ class PolarizationPlotter:
     def __init__(self, path=None):
         self.data = polarization_from_path(path)
         self.branches = branches_from_polarization(self.data)
-        self.switch = midpoint_branch_from_branches(self.data)
+        self.switch = midpoint_branch_from_branches(self.branches)
     
     def get_spontaneous(self):
         return 0.5*(self.switch[-1] - self.switch[0])
