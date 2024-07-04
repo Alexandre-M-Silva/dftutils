@@ -1,0 +1,84 @@
+import os
+import sys
+import warnings
+import click
+from monty.serialization import dumpfn, loadfn
+
+from dftutils.polarization import PolarizationPlotter
+
+def CommandWithConfigFile(config_file_param_name,):  # can also set CLI options using config file
+    """
+    Set CLI options using config file.
+
+    Args:
+        config_file_param_name (:obj:`str`):
+            name of config file
+    """
+
+    class CustomCommandClass(click.Command):
+        def invoke(self, ctx):
+            config_file = ctx.params[config_file_param_name]
+            if config_file is not None:
+                config_data = loadfn(config_file)
+                for param, _val in ctx.params.items():
+                    if (
+                        ctx.get_parameter_source(param) == click.core.ParameterSource.DEFAULT
+                        and param in config_data
+                    ):
+                        ctx.params[param] = config_data[param]
+            return super().invoke(ctx)
+
+    return CustomCommandClass
+
+# CLI Commands:
+CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
+
+@click.group("dftutils", context_settings=CONTEXT_SETTINGS, no_args_is_help=True)
+def dftutils():
+    """DftUtils: Utilities for VASP DFT calculation workflows."""
+
+@dftutils.command(
+    name="polarization",
+    context_settings=CONTEXT_SETTINGS,
+    no_args_is_help=True,
+    cls=CommandWithConfigFile("config"),
+)
+@click.option(
+    "--path",
+    "-p",
+    help="Path to polarization calculation.",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--switch",
+    "-s",
+    help="Highlight midpoint switch pathway.",
+    required=False,
+    default=False,
+    is_flag=True,
+    show_default=True,
+)
+def polarization(path, switch, save, config):
+    user_settings = loadfn(config) if config is not None else {}
+    func_args = list(locals().keys())
+
+    if user_settings:
+        valid_args = [
+            "path",
+            "switch",
+            "save",
+            "config",
+        ]
+        for key in func_args:
+            if key in user_settings:
+                user_settings.pop(key, None)
+
+        for key in list(user_settings.keys()):
+            # remove non-sense keys from user_settings
+            if key not in valid_args:
+                user_settings.pop(key)
+
+    pol = PolarizationPlotter(path)
+    pol.plot(switch, save)
+    

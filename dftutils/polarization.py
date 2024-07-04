@@ -130,7 +130,7 @@ class PolarizationPlotter:
     def get_spontaneous(self):
         return 0.5*(self.switch[-1] - self.switch[0])
     
-    def plot(self, show_switch=True):
+    def plot(self, show_switch=True, save=True):
         plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
 
         fig, ax = plt.subplots()
@@ -140,6 +140,9 @@ class PolarizationPlotter:
 
         if show_switch:
             ax.plot(self.switch, 'o-')
+
+        if save:
+            fig.savefig('plot.png', bbox_inches='tight', pad_inches=0.05)
 
         return fig, ax
 

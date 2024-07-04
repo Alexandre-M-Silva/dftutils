@@ -1,31 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["dftutils"]
-
-[project]
-name = "dftutils"
-version = "1.0"
-authors = [
-  { name="Alexandre Silva", email="alexandre.silva@fisica.uminho.com" },
+requires = [
+    "setuptools>=42",
+    "wheel"
 ]
-description = "A collection of DFT calculation setup/post-processing utilities"
-readme = "README.md"
-requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-dependencies = [
-  'pymatgen',
-  'matplotlib',
-  'pandas',
-  'scipy',
-]
-
-[project.urls]
-Homepage = "https://github.com/Alexandre-M-Silva/dftutils"
-Issues = "https://github.com/Alexandre-M-Silva/dftutils/issues"
+build-backend = "setuptools.build_meta"
