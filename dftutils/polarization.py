@@ -106,11 +106,11 @@ def branches_from_polarization(pol, axis=2):
     
     return branches
 
-def midpoint_branch_from_polarization(pol):
+def midpoint_branch_from_polarization(pol, axis=2):
     """
     Picks the branch that centers around zero the most.
     """
-    branches = branches_from_polarization(pol)
+    branches = branches_from_polarization(pol, axis)
     midpoints = [0.5*(branch[len(branch)-1] + branch[0]) for branch in branches]
     ith = np.argmin(np.abs(midpoints))
     return branches[ith]
