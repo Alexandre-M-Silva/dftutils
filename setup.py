@@ -92,6 +92,7 @@ setup(
         "console_scripts": [
             "dftutils = dftutils.cli:dftutils",
             "dftutils-polarization = dftutils.cli:polarization",
+            "dftutils-match = dftutils.cli:match",
         ],
     },
     cmdclass={
