@@ -46,7 +46,7 @@ def distance_between_structures(a, b):
         dist_cum += si.distance(sj)
     return dist_cum
 
-def match_structure_indices(path_a, path_b, output_path):
+def match_structure_indices(path_a, path_b):
     sta = Structure.from_file(path_a)
     stb = Structure.from_file(path_b)
 
@@ -67,4 +67,5 @@ def match_structure_indices(path_a, path_b, output_path):
     for si, sb in enumerate(stb.sites):
         stb.sites[pairings[si][0]] = stc.sites[pairings[si][1]]
 
-    stb.to(output_path, fmt='poscar')
+    sta.to(os.path.join(path_a, "_sorted"), fmt='poscar')
+    sta.to(os.path.join(path_b, "_sorted"), fmt='poscar')

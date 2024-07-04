@@ -107,26 +107,18 @@ def polarization(path, save, branch, config):
     cls=CommandWithConfigFile("config"),
 )
 @click.option(
-    "--structure",
-    "-s",
-    help="Path to structure you want to have matching indices.",
+    "--a",
+    "-a",
+    help="Path to first structure.",
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
 @click.option(
-    "--match",
-    "-m",
-    help="Path to structure you want to match indices to.",
+    "--b",
+    "-b",
+    help="Path to second structure.",
     required=True,
     type=click.Path(exists=True, dir_okay=False),
-)
-@click.option(
-    "--out",
-    "-o",
-    help="Path of output file.",
-    required=False,
-    default=None,
-    type=click.Path(exists=False, dir_okay=False),
 )
 @click.option(
     "--config",
@@ -136,15 +128,14 @@ def polarization(path, save, branch, config):
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def match(structure, match, out, config):
+def match(a, b, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
     if user_settings:
         valid_args = [
-            "structure",
-            "match",
-            "out",
+            "a",
+            "b",
             "config,"
         ]
         for key in func_args:
@@ -156,8 +147,4 @@ def match(structure, match, out, config):
             if key not in valid_args:
                 user_settings.pop(key)
 
-    output_path = os.path.join(structure, "_matched")
-    if not out is None:
-        output_path = out
-            
-    match_structure_indices(structure, match, out)
+    match_structure_indices(a, b)
