@@ -136,7 +136,7 @@ def polarization(path, save, branch, config):
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def match(structure, match, out, format, config):
+def match(structure, match, out, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
