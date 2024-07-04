@@ -12,7 +12,7 @@ from pymatgen.core import Structure
 
 from dftutils.utils import *
 
-def polarization_scatter_from_path(path, bmin=-5, bmax=5):
+def polarization_from_path(path, bmin=-5, bmax=5):
     """
     Obtain polarization points (multiple branches) in uC cm^-2, 
     for a given interval of branches.
@@ -58,9 +58,9 @@ def polarization_scatter_from_path(path, bmin=-5, bmax=5):
 
     return df
 
-def branch_from_polarization_scatter(pol, axis=2, start=0):
+def branch_from_polarization(pol, axis=2, start=0):
     """
-    Extracts the polarization swithcing branch from the scatter data,
+    Extracts the polarization switching branch from the polarization data and a starting polarization,
     assuming that its monotonically increasing.
     """
     branch = []
@@ -68,17 +68,23 @@ def branch_from_polarization_scatter(pol, axis=2, start=0):
     image = 0
     P = start if start != 0 else np.min(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     for i in range(0, nimages):
-        df = pol[pol['Image']==i]
-        df.iloc[:, axis+1] = df.iloc[:, axis+1] - P
-        df = df[df.iloc[:, axis+1] >= 0]
-        if df.iloc[:, axis+1].shape[0] > 1:
-            df = df.iloc[df.iloc[:, axis+1].argsort()[:-1]]
+        ps = np.sort(pol[pol['Image']==i].iloc[:, axis+1].values)
+        if (P < ps).any():
+            for p in ps:
+                if p > P:
+                    P = p
+                    break
+        else:
+            break
+            
+        branch.append(P)
         
-        P = pol.loc[df.iloc[:, axis+1].index[0]].values[axis+1]
-        branch.append(P)    
-    return np.array(branch)
+    if len(branch) == nimages:
+        return np.array(branch)
+    else:
+        return None
 
-def branches_from_polarization_scatter(pol, axis=2):
+def branches_from_polarization(pol, axis=2):
     """
     Extracts a list of polarization switching branches from the scatter data.
     """
@@ -87,18 +93,25 @@ def branches_from_polarization_scatter(pol, axis=2):
     starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     start = starts[0]
     while (start <= starts).any():
-        print(start)
-        branches.append(branch_from_polarization_scatter(pol, axis=axis, start=start))
+        branch = branch_from_polarization(pol, axis=axis, start=start)
+        if branch is None:
+            break
+                
+        branches.append(branch)
+            
         for s in starts:
             if s > start:
                 start = s
+                break
     
     return branches
 
-def find_branch_around_zero(branches):
+def midpoint_branch_from_polarization(pol):
     """
     Picks the branch that centers around zero the most.
     """
+    branches = branches_from_polarization(pol)
     midpoints = [0.5*(branch[len(branch)-1] + branch[0]) for branch in branches]
     ith = np.argmin(np.abs(midpoints))
     return branches[ith]
+
