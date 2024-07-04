@@ -67,5 +67,5 @@ def match_structure_indices(path_a, path_b):
     for si, sb in enumerate(stb.sites):
         stb.sites[pairings[si][0]] = stc.sites[pairings[si][1]]
 
-    sta.to(os.path.join(path_a, "_sorted"), fmt='poscar')
-    sta.to(os.path.join(path_b, "_sorted"), fmt='poscar')
+    sta.to(path_a + "_sorted", fmt='poscar')
+    sta.to(path_b + "_sorted", fmt='poscar')
