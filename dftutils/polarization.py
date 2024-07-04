@@ -123,6 +123,7 @@ def midpoint_branch_from_polarization(pol, axis=2):
 
 class PolarizationPlotter:
     def __init__(self, path=None):
+        self.path = path
         self.data = polarization_from_path(path)
         self.branches = branches_from_polarization(self.data)
         self.switch = midpoint_branch_from_branches(self.branches)
@@ -142,7 +143,7 @@ class PolarizationPlotter:
             ax.plot(self.switch, 'o-')
 
         if save:
-            fig.savefig('plot.png', bbox_inches='tight', pad_inches=0.05)
+            fig.savefig(os.path.join(self.path, 'plot.png'), bbox_inches='tight', pad_inches=0.05)
 
         return fig, ax
 
