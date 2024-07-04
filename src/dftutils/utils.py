@@ -16,6 +16,7 @@ def folders_from_path(root):
             if subdir.isnumeric():
                 min_f = min(min_f, int(subdir))
                 max_f = max(max_f, int(subdir))
+        break
 
     folders = []
     for i in range(min_f, max_f+1):
