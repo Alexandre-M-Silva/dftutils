@@ -68,4 +68,4 @@ def match_structure_indices(path_a, path_b):
         stb.sites[pairings[si][0]] = stc.sites[pairings[si][1]]
 
     sta.to(path_a + "_sorted", fmt='poscar')
-    sta.to(path_b + "_sorted", fmt='poscar')
+    stb.to(path_b + "_sorted", fmt='poscar')
