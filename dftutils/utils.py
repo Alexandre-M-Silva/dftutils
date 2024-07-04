@@ -45,3 +45,26 @@ def distance_between_structures(a, b):
     for si, sj in zip(a.sites, b.sites):
         dist_cum += si.distance(sj)
     return dist_cum
+
+def match_structure_indices(path_a, path_b, output_path):
+    sta = Structure.from_file(path_a)
+    stb = Structure.from_file(path_b)
+
+    pairings = []
+
+    for si, sa in enumerate(sta.sites):
+        clj = -1
+        mind = 10000000
+        for sj, sb in enumerate(stb.sites):
+            d = sa.distance(sb)
+            if d <= mind:
+                mind = d
+                clj = sj
+        pairings.append((si, clj))
+
+    stc = stb.copy()
+
+    for si, sb in enumerate(stb.sites):
+        stb.sites[pairings[si][0]] = stc.sites[pairings[si][1]]
+
+    stb.to(output_path, fmt='poscar')

@@ -5,6 +5,7 @@ import click
 from monty.serialization import dumpfn, loadfn
 
 from dftutils.polarization import PolarizationPlotter
+from dftutils.utils import match_structure_indices
 
 def CommandWithConfigFile(config_file_param_name,):  # can also set CLI options using config file
     """
@@ -98,3 +99,65 @@ def polarization(path, save, branch, config):
 
     pol = PolarizationPlotter(path)
     pol.plot(branch, save)
+
+@dftutils.command(
+    name="match",
+    context_settings=CONTEXT_SETTINGS,
+    no_args_is_help=True,
+    cls=CommandWithConfigFile("config"),
+)
+@click.option(
+    "--structure",
+    "-s",
+    help="Path to structure you want to have matching indices.",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--match",
+    "-m",
+    help="Path to structure you want to match indices to.",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--out",
+    "-o",
+    help="Path of output file.",
+    required=False,
+    default=None,
+    type=click.Path(exists=False, dir_okay=False),
+)
+@click.option(
+    "--config",
+    "-conf",
+    help="Config file for advanced settings.",
+    default=None,
+    type=click.Path(exists=True, dir_okay=False),
+    show_default=True,
+)
+def match(structure, match, out, format, config):
+    user_settings = loadfn(config) if config is not None else {}
+    func_args = list(locals().keys())
+
+    if user_settings:
+        valid_args = [
+            "structure",
+            "match",
+            "out",
+            "config,"
+        ]
+        for key in func_args:
+            if key in user_settings:
+                user_settings.pop(key, None)
+
+        for key in list(user_settings.keys()):
+            # remove non-sense keys from user_settings
+            if key not in valid_args:
+                user_settings.pop(key)
+
+    output_path = os.path.join(structure, "_matched")
+    if not out is None:
+        output_path = out
+            
+    match_structure_indices(structure, match, out)
