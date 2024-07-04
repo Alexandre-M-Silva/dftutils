@@ -106,12 +106,41 @@ def branches_from_polarization(pol, axis=2):
     
     return branches
 
-def midpoint_branch_from_polarization(pol, axis=2):
+def midpoint_branch_from_branches(branches):
     """
     Picks the branch that centers around zero the most.
     """
-    branches = branches_from_polarization(pol, axis)
     midpoints = [0.5*(branch[len(branch)-1] + branch[0]) for branch in branches]
     ith = np.argmin(np.abs(midpoints))
     return branches[ith]
+
+def midpoint_branch_from_polarization(pol, axis=2):
+    """
+    Picks the branch that centers around zero the most from polarization.
+    """
+    branches = branches_from_polarization(pol, axis)
+    return midpoint_branch_from_branches(branches)
+
+class PolarizationPlotter:
+    def __init__(self, path=None):
+        self.data = polarization_from_path(path)
+        self.branches = branches_from_polarization(self.data)
+        self.switch = midpoint_branch_from_branches(self.data)
+    
+    def get_spontaneous(self):
+        return 0.5*(self.switch[-1] - self.switch[0])
+    
+    def plot(self, show_switch=True):
+        plt.style.use('./dftutils')
+
+        fig, ax = plt.subplots()
+        ax.set_xlabel('Image')
+        ax.set_ylabel(r'$P_s\ (\mu C/cm^2)$')
+        ax.scatter(self.data['Image'], self.data.iloc[:, 3], s=0.5, color='black')
+
+        if show_switch:
+            ax.plot(self.switch, 'o-')
+
+        return fig, ax
+
 
