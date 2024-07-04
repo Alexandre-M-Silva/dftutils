@@ -66,7 +66,7 @@ def branch_from_polarization_scatter(pol, axis=2, start=0):
     branch = []
     nimages = pol['Image'].nunique()
     image = 0
-    P = start if start != 0 else np.min(pol[pol['Image'] == 0])
+    P = start if start != 0 else np.min(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     for i in range(0, nimages):
         df = pol[pol['Image']==i]
         df.iloc[:, axis+1] = df.iloc[:, axis+1] - P
@@ -84,8 +84,7 @@ def branches_from_polarization_scatter(pol, axis=2):
     """
     branches = []
 
-    starts = np.sort(pol[pol['Image'] == 0].values)
-    print(starts)
+    starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     start = starts[0]
     while (start <= starts).any():
         print(start)
