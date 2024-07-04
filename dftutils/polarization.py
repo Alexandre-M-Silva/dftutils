@@ -12,15 +12,15 @@ from pymatgen.core import Structure
 
 from dftutils.utils import *
 
-e = -1.60218E-19
-Angstrom = 1e-10
-eV = 1.60218E-19
-
 def polarization_scatter_from_path(path, bmin=-5, bmax=5):
     """
     Obtain polarization points (multiple branches) in uC cm^-2, 
     for a given interval of branches.
     """
+
+    e = -1.60218E-19
+    Angstrom = 1e-10
+    eV = 1.60218E-19
 
     outcars, structures = outcars_and_structures_from_path(path)
 
@@ -66,7 +66,7 @@ def branch_from_polarization_scatter(pol, axis=2, start=0):
     branch = []
     nimages = pol['Image'].nunique()
     image = 0
-    P = start if start != 0 else np.min(pol[pol['Image'] == 0].values)
+    P = start if start != 0 else np.min(pol[pol['Image'] == 0])
     for i in range(0, nimages):
         df = pol[pol['Image']==i]
         df.iloc[:, axis+1] = df.iloc[:, axis+1] - P
