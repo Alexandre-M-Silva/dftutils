@@ -86,7 +86,7 @@ def branches_from_polarization_scatter(pol, axis=2):
 
     starts = np.sort(pol[pol['Image'] == 0].values)
     start = starts[0]
-    while any(start <= starts):
+    while (start <= starts).any():
         branches.append(branch_from_polarization_scatter(pol, axis=axis, start=start))
         for s in starts:
             if s > start:
