@@ -10,7 +10,7 @@ from pymatgen.io.vasp.outputs import Outcar
 from pymatgen.analysis.ferroelectricity.polarization import Polarization
 from pymatgen.core import Structure
 
-import utils
+from utils import *
 
 e = -1.60218E-19
 Angstrom = 1e-10
@@ -22,7 +22,7 @@ def polarization_scatter_from_path(path, bmin=-5, bmax=5):
     for a given interval of branches.
     """
 
-    outcars, structures = utils.outcars_and_structures_from_path(path)
+    outcars, structures = outcars_and_structures_from_path(path)
 
     pdata_e = []
     pdata_i = []
