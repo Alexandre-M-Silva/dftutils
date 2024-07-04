@@ -5,14 +5,14 @@ import pandas as pd
 from scipy.interpolate import make_interp_spline
 import matplotlib.pyplot as plt
 
-import dftutils.core.utils as utils
+from utils import *
 
 class Neb:
     def __init__(self, name=None, path=None):
         if path == None:
             return
         
-        outcars, structures = utils.outcars_and_structures_from_path(path)
+        outcars, structures = outcars_and_structures_from_path(path)
 
         ref_structure = structures[0]
         ref_energy = outcars[0].final_energy
@@ -20,7 +20,7 @@ class Neb:
         distances = [0]
         energies = [0]
         for i, v in enumerate(zip(outcars[1:], structures[1:])):
-            distances.append(utils.distance_between_structures(v[1], ref_structure))
+            distances.append(distance_between_structures(v[1], ref_structure))
             energies.append(v[0].final_energy-ref_energy)
 
         self.data = pd.DataFrame({"Image": range(len(structures)),
