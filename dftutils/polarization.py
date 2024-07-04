@@ -10,7 +10,7 @@ from pymatgen.io.vasp.outputs import Outcar
 from pymatgen.analysis.ferroelectricity.polarization import Polarization
 from pymatgen.core import Structure
 
-from utils import *
+from dftutils.utils import *
 
 e = -1.60218E-19
 Angstrom = 1e-10

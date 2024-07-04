@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.interpolate import make_interp_spline
 import matplotlib.pyplot as plt
 
-from utils import *
+from dftutils.utils import *
 
 class Neb:
     def __init__(self, name=None, path=None):
