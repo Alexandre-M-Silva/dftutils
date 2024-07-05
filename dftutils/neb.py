@@ -7,7 +7,10 @@ import matplotlib.pyplot as plt
 
 from dftutils.utils import *
 
-class Neb:
+def interp_from_structures(structures, n):
+    return None
+
+class NebData:
     def __init__(self, name=None, path=None):
         if path == None:
             return
@@ -36,8 +39,8 @@ class NebPlotter:
     def __init__(self):
         self.nebs = []
 
-    def add_neb(self, neb: Neb):
-        self.nebs.append(neb)
+    def add_neb(self, neb_data: NebData):
+        self.nebs.append(neb_data)
 
     def plot(self, name='plot', format='png', save=False):
         fig, ax = plt.subplots()
