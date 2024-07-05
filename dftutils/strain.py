@@ -13,7 +13,7 @@ def format_strain_directory(strain):
     return dir
 
 def apply_strain(structure, strain):
-    strain = 1.0-np.array([float(strain[0])/100.0, float(strain[1])/100.0, float(strain[2])/100.0])
+    strain = 1.0+np.array([float(strain[0])/100.0, float(strain[1])/100.0, float(strain[2])/100.0])
     strain_matrix = np.matrix([[strain[0], 0, 0], [0, strain[1], 0], [0, 0, strain[2]]])
     new_lattice = Lattice(np.dot(structure.lattice.matrix.T, strain_matrix).T)
     new_structure = structure.copy()
