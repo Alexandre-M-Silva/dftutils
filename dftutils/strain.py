@@ -7,9 +7,9 @@ from pymatgen.core import Lattice
 
 def format_strain_directory(strain):
     dir = f"{strain[0]:.6E},{strain[1]:.6E},{strain[2]:.6E}"
-    dir.replace("+", "p")
-    dir.replace("-", "m")
-    dir.replace(".", "_")
+    dir = dir.replace("+", "p")
+    dir = dir.replace("-", "m")
+    dir = dir.replace(".", "_")
     return dir
 
 def apply_strain(structure, strain):
