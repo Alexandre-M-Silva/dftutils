@@ -93,6 +93,7 @@ setup(
             "dftutils = dftutils.cli:dftutils",
             "dftutils-polarization = dftutils.cli:polarization",
             "dftutils-match = dftutils.cli:match",
+            "dftutils-strain = dftutils.cli:strain",
         ],
     },
     cmdclass={
