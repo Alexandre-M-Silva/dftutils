@@ -172,7 +172,7 @@ def match(a, b, config):
     "--strain",
     "-s",
     help="Strain components.",
-    required=True,
+    required=False,
     type=click.Tuple([float, float, float]),
 )
 @click.option(
