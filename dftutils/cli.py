@@ -209,7 +209,7 @@ def match(a, b, config):
     "-so",
     help="Output path for scan folders.",
     default=None,
-    type=click.Path(exists=True, dir_okay=False),
+    type=click.Path(exists=True, dir_okay=True),
     show_default=True,
 )
 @click.option(
