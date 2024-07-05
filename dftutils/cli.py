@@ -244,8 +244,8 @@ def strain(path, strain, scan, min_strain, max_strain, number, scan_output, conf
         new_structure = apply_strain(structure, strain)
         new_structure.to(path + "_strained", fmt="poscar")
     else:
-        t = np.linspace(0, 1, number)
-        strains = np.array(min_strain) + t*(np.array(max_strain) - np.array(min_strain))
+        ts = np.linspace(0, 1, number)
+        strains = [np.array(min_strain) + t*(np.array(max_strain) - np.array(min_strain)) for t in ts]
         structures = [apply_strain(structure, s) for s in strains]
         folders = [os.path.join(scan_output, format_strain_directory(s)) for s in strain]
         
