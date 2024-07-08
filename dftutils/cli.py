@@ -300,7 +300,7 @@ def strain(path, strain, scan, min_strain, max_strain, number, scan_output, conf
     help="Path to output the neb directories.",
     required=False,
     default=None,
-    type=click.Path(exists=True, dir_okay=False),
+    type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
     "--config",
