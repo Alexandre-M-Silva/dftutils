@@ -74,9 +74,8 @@ def match_structure_indices(path_a, path_b):
     
 def interp_from_structures(structures, n):
     interp_structures = []
-    ns = len(structures)
     ts = np.linspace(0, len(structures)-1, n)
-    for t in len(ts):
+    for t in ts:
         tmin = int(np.floor(t))
         tmax = int(np.ceil(t))
         ti = t - float(tmin)
