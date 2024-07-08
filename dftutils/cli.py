@@ -13,6 +13,8 @@ from dftutils.utils import match_structure_indices
 from dftutils.strain import apply_strain
 from dftutils.strain import format_strain_directory
 
+from dftutils.neb import Neb
+
 def CommandWithConfigFile(config_file_param_name,):  # can also set CLI options using config file
     """
     Set CLI options using config file.
@@ -249,15 +251,82 @@ def strain(path, strain, scan, min_strain, max_strain, number, scan_output, conf
         structures = [apply_strain(structure, s) for s in strains]
         folders = [os.path.join(scan_output, format_strain_directory(s)) for s in strains]
         
-        # Create strain scan folders
-        for sf in folders:
-            if not os.path.exists(sf):
-                os.makedirs(sf)
-        
         # Create directories and export structures
         for s, f in zip(structures, folders):
             if not os.path.exists(f):
                 os.makedirs(f)
             s.to(os.path.join(f, "POSCAR"), fmt="poscar")
         
+@dftutils.command(
+    name="neb",
+    context_settings=CONTEXT_SETTINGS,
+    no_args_is_help=True,
+    cls=CommandWithConfigFile("config"),
+)
+@click.option(
+    "--path",
+    "-p",
+    help="Path to directory containing the desired pathway.",
+    required=False,
+    default=None,
+    type=click.Path(exists=True, dir_okay=True),
+)
+@click.option(
+    "--initial",
+    "-i",
+    help="Path to initial structure containing the desired pathway.",
+    required=False,
+    default=None,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--final",
+    "-f",
+    help="Path to final structure containing the desired pathway.",
+    required=False,
+    default=None,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--number",
+    "-n",
+    help="Number of images to generate.",
+    required=False,
+    type=int,
+)
+@click.option(
+    "--config",
+    "-conf",
+    help="Config file for advanced settings.",
+    default=None,
+    type=click.Path(exists=True, dir_okay=False),
+    show_default=True,
+)
+def neb(path, initial, final, number, config):
+    user_settings = loadfn(config) if config is not None else {}
+    func_args = list(locals().keys())
+
+    if user_settings:
+        valid_args = [
+            "path",
+            "strain",
+            "config,"
+        ]
+        for key in func_args:
+            if key in user_settings:
+                user_settings.pop(key, None)
+
+        for key in list(user_settings.keys()):
+            # remove non-sense keys from user_settings
+            if key not in valid_args:   
+                user_settings.pop(key)
+
+    if not path is None:
+        neb = Neb.from_path(path, number)
+    elif path is None and not initial is None and not final is None:
+        neb = Neb.from_initial_and_final(initial, final, number)
+    else:
+        raise Exception(
+            f"Path or initial and final images were not defined."
+        )
 

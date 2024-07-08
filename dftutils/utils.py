@@ -7,6 +7,12 @@ from pymatgen.io.vasp.outputs import Outcar
 from pymatgen.io.vasp.outputs import Oszicar
 from pymatgen.core.structure import Structure
 
+def format_numeric_folder(root, i):
+    if i <= 9:
+        return os.path.join(root, "{:02d}".format(i))
+    else:
+        return os.path.join(root, "{:d}".format(i))
+
 def folders_from_path(root):
     # TODO: This assumes paths are numbered in a numeric manner, make this smarter.
     min_f = sys.maxsize
@@ -18,12 +24,7 @@ def folders_from_path(root):
                 max_f = max(max_f, int(subdir))
         break
 
-    folders = []
-    for i in range(min_f, max_f+1):
-        if i <= 9:
-            folders.append(os.path.join(root, "{:02d}".format(i)))
-        else:
-            folders.append(os.path.join(root, "{:d}".format(i)))
+    folders = [format_numeric_folder(i) for i in range(min_f, max_f+1)]
     
     return folders
 
@@ -69,3 +70,21 @@ def match_structure_indices(path_a, path_b):
 
     sta.to(path_a + "_sorted", fmt='poscar')
     stb.to(path_b + "_sorted", fmt='poscar')
+
+    
+def interp_from_structures(structures, n):
+    interp_structures = []
+    ns = len(structures)
+    ts = np.linspace(0, len(structures)-1, n)
+    for t in len(ts):
+        tmin = int(np.floor(t))
+        tmax = int(np.ceil(t))
+        ti = t - float(tmin)
+
+        interp_structures.append(structures[tmin].interpolate(end_structure=structures[tmax],
+                                                            nimages=1,
+                                                            interpolate_lattices=True,
+                                                            pbc=True,
+                                                            end_amplitude=ti)[1])
+         
+    return interp_structures

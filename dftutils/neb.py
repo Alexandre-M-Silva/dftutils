@@ -7,11 +7,53 @@ import matplotlib.pyplot as plt
 
 from dftutils.utils import *
 
-def interp_from_structures(structures, n):
-    return None
+
+class Neb:
+    def __init__(self,
+                 structures: list[Structure] = None):
+        self.structures = structures
+
+    def to_path(self,
+                path: str):
+        folders = [format_numeric_folder(i) for i in range(0, len(self.structures)+1)]
+        for s, f in zip(self.structures, folders):
+            f = os.path.join(path, f)
+            if not os.path.exists(f):
+                os.makedirs(f)
+            s.to(os.path.join(f, "POSCAR"), fmt="poscar")
+        
+    def from_initial_and_final(initial: Structure | str, 
+                               final: Structure | str, 
+                               n: int):
+        if isinstance(initial, str):
+            initial = Structure.from_file(initial)
+        if isinstance(final, str):
+            final = Structure.from_file(final)
+
+        structures = [initial, final]
+        interp_structures = interp_from_structures(structures, n+2)
+        return Neb(interp_structures)
+
+    def from_path(path: str, 
+                  n: int):
+        folders = folders_from_path(path)
+        if len(folders) <= 2:
+            raise ValueError("Not enough numerically named folders on directory to extract a pathway.")
+        
+        structures = []
+        for folder in folders:
+            if os.path.exists(os.path.join(folder, "CONTCAR")):
+                structures.append(Structure.from_file(os.path.join(folder, "CONTCAR")))
+            elif os.path.exists(os.path.join(folder, "POSCAR")):
+                structures.append(Structure.from_file(os.path.join(folder, "POSCAR")))
+            else:
+                raise Exception(f"Could not find CONTCAR or POSCAR files in {folder}.")
+            
+        interp_structures = interp_from_structures(structures, n+2)
+        return Neb(interp_structures)     
 
 class NebData:
-    def __init__(self, name=None, path=None):
+    def __init__(self, name: str = None, path: str = None):
         if path == None:
             return
         
