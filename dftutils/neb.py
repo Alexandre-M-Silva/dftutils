@@ -15,7 +15,7 @@ class Neb:
 
     def to_path(self,
                 path: str):
-        folders = [format_numeric_folder(i) for i in range(0, len(self.structures)+1)]
+        folders = [format_numeric_folder(path, i) for i in range(0, len(self.structures)+1)]
         for s, f in zip(self.structures, folders):
             f = os.path.join(path, f)
             if not os.path.exists(f):
