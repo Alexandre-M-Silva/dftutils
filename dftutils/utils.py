@@ -24,7 +24,7 @@ def folders_from_path(root):
                 max_f = max(max_f, int(subdir))
         break
 
-    folders = [format_numeric_folder(i) for i in range(min_f, max_f+1)]
+    folders = [format_numeric_folder(root, i) for i in range(min_f, max_f+1)]
     
     return folders
 
