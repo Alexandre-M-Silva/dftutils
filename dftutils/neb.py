@@ -17,7 +17,6 @@ class Neb:
                 path: str):
         folders = [format_numeric_folder(path, i) for i in range(0, len(self.structures)+1)]
         for s, f in zip(self.structures, folders):
-            f = os.path.join(path, f)
             if not os.path.exists(f):
                 os.makedirs(f)
             s.to(os.path.join(f, "POSCAR"), fmt="poscar")
