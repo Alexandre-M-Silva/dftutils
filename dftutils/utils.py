@@ -98,7 +98,7 @@ def interp_from_structures(structures, n):
         lattice = Lattice(l_a)
         frac_coords = start_coords + vec
         interp_structures.append(
-            type(Structure)(lattice, s0.species_and_occu, frac_coords, site_properties=s0.site_properties, labels=s0.labels)
+            type(s0)(lattice, s0.species_and_occu, frac_coords, site_properties=s0.site_properties, labels=s0.labels)
         )
 
     return interp_structures
