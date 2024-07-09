@@ -94,7 +94,7 @@ def interp_from_structures(structures, n):
         lvec = ti * (p - np.identity(3))
         lstart = s0.lattice.matrix.T
         
-        l_a = np.dot(np.identity(3) + x * lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
+        l_a = np.dot(np.identity(3) + lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
         lattice = Lattice(l_a)
         frac_coords = start_coords + vec
         interp_structures.append(
