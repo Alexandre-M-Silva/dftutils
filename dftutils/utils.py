@@ -6,6 +6,7 @@ from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.outputs import Outcar
 from pymatgen.io.vasp.outputs import Oszicar
 from pymatgen.core.structure import Structure
+from pymatgen.core.lattice import Lattice
 
 def format_numeric_folder(root, i):
     if i <= 9:
@@ -81,7 +82,7 @@ def interp_from_structures(structures, n):
         ti = t - float(tmin)
 
         s = structures[tmin].copy()
-        s.lattice = structures[tmin].lattice + ti*(structures[tmax].lattice - structures[tmin].lattice)
+        s.lattice = Lattice.from_parameters(structures[tmin].lattice.parameters + ti*(structures[tmax].lattice.parameters - structures[tmin].lattice.parameters))
         s.coords = structures[tmin].coords + ti*(structures[tmax].coords - structures[tmin].coords)
         interp_structures.append(s)
 
