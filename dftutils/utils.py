@@ -80,10 +80,9 @@ def interp_from_structures(structures, n):
         tmax = int(np.ceil(t))
         ti = t - float(tmin)
 
-        interp_structures.append(structures[tmin].interpolate(end_structure=structures[tmax],
-                                                            nimages=1,
-                                                            interpolate_lattices=True,
-                                                            pbc=True,
-                                                            end_amplitude=ti)[1])
-         
+        s = structures[tmin].copy()
+        s.lattice = structures[tmin].lattice + ti*(structures[tmax].lattice - structures[tmin].lattice)
+        s.coords = structures[tmin].coords + ti*(structures[tmax].coords - structures[tmin].coords)
+        interp_structures.append(s)
+
     return interp_structures
