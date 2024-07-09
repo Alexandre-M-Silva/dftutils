@@ -2,11 +2,11 @@ import sys
 import os
 import numpy as np
 
-from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.outputs import Outcar
-from pymatgen.io.vasp.outputs import Oszicar
 from pymatgen.core.structure import Structure
 from pymatgen.core.lattice import Lattice
+
+from scipy.linalg import polar
 
 def format_numeric_folder(root, i):
     if i <= 9:
@@ -80,10 +80,25 @@ def interp_from_structures(structures, n):
         tmin = int(np.floor(t))
         tmax = int(np.ceil(t))
         ti = t - float(tmin)
+        
+        s0 = structures[tmin]
+        s1 = structures[tmax]
+        
+        start_coords = np.array(s0.frac_coords)
+        end_coords = np.array(s1.frac_coords)
 
-        s = structures[tmin].copy()
-        s.lattice = Lattice.from_parameters(structures[tmin].lattice.parameters + ti*(structures[tmax].lattice.parameters - structures[tmin].lattice.parameters))
-        s.coords = structures[tmin].coords + ti*(structures[tmax].coords - structures[tmin].coords)
-        interp_structures.append(s)
+        vec = ti * (end_coords - start_coords)
+        vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
+        
+        _u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
+        lvec = ti * (p - np.identity(3))
+        lstart = s0.lattice.matrix.T
+        
+        l_a = np.dot(np.identity(3) + x * lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
+        lattice = Lattice(l_a)
+        frac_coords = start_coords + vec
+        interp_structures.append(
+            type(Structure)(lattice, s0.species_and_occu, frac_coords, site_properties=s0.site_properties, labels=s0.labels)
+        )
 
     return interp_structures
