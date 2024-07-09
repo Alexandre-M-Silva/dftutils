@@ -73,7 +73,8 @@ def match_structure_indices(path_a, path_b):
     stb.to(path_b + "_sorted", fmt='poscar')
 
     
-def interp_from_structures(structures, n):
+def interp_from_structures(structures: list[Structure], 
+                           n: int):
     interp_structures = []
     ts = np.linspace(0, len(structures)-1, n)
     for t in ts:
