@@ -91,13 +91,13 @@ def interp_from_structures(structures: list[Structure],
         vec = ti * (end_coords - start_coords)
         #vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
         
-        #_u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
-        #lvec = ti * (p - np.identity(3))
-        #lstart = s0.lattice.matrix.T
+        _u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
+        lvec = ti * (p - np.identity(3))
+        lstart = s0.lattice.matrix.T
         
-        #l_a = np.dot(np.identity(3) + lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
-        #lattice = Lattice(l_a)
-        lattice = s0.lattice
+        l_a = np.dot(np.identity(3) + lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
+        lattice = Lattice(l_a)
+        #lattice = s0.lattice
         frac_coords = start_coords + vec
         interp_structures.append(
             type(s0)(lattice, s0.species_and_occu, frac_coords, site_properties=s0.site_properties, labels=s0.labels)
