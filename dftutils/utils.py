@@ -106,8 +106,7 @@ def interp_from_structures(structures: list[Structure],
             type(s0)(lattice, s0.species_and_occu, frac_coords, site_properties=s0.site_properties, labels=s0.labels)
         )
 
-    matched_structures = []
     for i in range(0, len(interp_structures)-2):
         match_indices_from_structs(interp_structures[i], interp_structures[i+1])
 
-    return matched_structures
+    return interp_structures
