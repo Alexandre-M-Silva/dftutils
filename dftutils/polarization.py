@@ -132,9 +132,6 @@ class PolarizationPlotter:
         return 0.5*(self.switch[-1] - self.switch[0])
     
     def plot(self, show_switch=True, save=True):
-        self.branches = branches_from_polarization(self.data)
-        self.switch = midpoint_branch_from_branches(self.branches)
-    
         plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
 
         fig, ax = plt.subplots()
@@ -143,6 +140,8 @@ class PolarizationPlotter:
         ax.scatter(self.data['Image'], self.data.iloc[:, 3], s=0.5, color='black')
 
         if show_switch:
+            self.branches = branches_from_polarization(self.data)
+            self.switch = midpoint_branch_from_branches(self.branches)
             ax.plot(self.switch, 'o-')
 
         if save:
