@@ -125,13 +125,16 @@ class PolarizationPlotter:
     def __init__(self, path=None):
         self.path = path
         self.data = polarization_from_path(path)
-        self.branches = branches_from_polarization(self.data)
-        self.switch = midpoint_branch_from_branches(self.branches)
+        self.branches = None
+        self.switch = None
     
     def get_spontaneous(self):
         return 0.5*(self.switch[-1] - self.switch[0])
     
     def plot(self, show_switch=True, save=True):
+        self.branches = branches_from_polarization(self.data)
+        self.switch = midpoint_branch_from_branches(self.branches)
+    
         plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
 
         fig, ax = plt.subplots()
