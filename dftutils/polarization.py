@@ -44,7 +44,9 @@ def polarization_from_path(path, bmin=-5, bmax=5):
 
             if structure != None:
                 vol = structure.volume
-                abc = np.array(structure.lattice.abc)
+                abc = np.array([structure.lattice.matrix[0][0],
+                               structure.lattice.matrix[1][1],
+                               structure.lattice.matrix[2][2]])
                 pelc = np.array(pdata_e[i])
                 pion = np.array(pdata_i[i])
                 ptot = pelc + pion
