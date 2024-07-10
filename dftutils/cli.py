@@ -7,13 +7,10 @@ import numpy as np
 
 from pymatgen.core.structure import Structure
 
-from dftutils.polarization import PolarizationPlotter
-from dftutils.utils import match_structure_indices
-
-from dftutils.strain import apply_strain
-from dftutils.strain import format_strain_directory
-
-from dftutils.neb import Neb
+from dftutils.polarization import *
+from dftutils.utils import *
+from dftutils.strain import *
+from dftutils.neb import *
 
 def CommandWithConfigFile(config_file_param_name,):  # can also set CLI options using config file
     """
@@ -155,7 +152,10 @@ def match(a, b, config):
             if key not in valid_args:
                 user_settings.pop(key)
 
-    match_structure_indices(a, b)
+    if isinstance(a, Structure) and isinstance(b, Structure):
+        match_indices_from_structs(a, b)
+    else:
+        match_indices_from_paths(a, b)
 
 @dftutils.command(
     name="strain",
