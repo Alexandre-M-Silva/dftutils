@@ -16,7 +16,6 @@ def pion_vec(file):
 def pelc_vec(file):
     return pd.read_csv(StringIO(sp.run(["grep 'Total electronic dipole moment' " + file + " | awk '{print $6,$7,$8}'"], shell=True, capture_output=True).stdout.decode('utf-8').replace('*', '')), header=None, sep=" ", on_bad_lines='skip').values[0]
     
-
 def polarization_from_path(path, bmin=-5, bmax=5):
     """
     Obtain polarization points (multiple branches) in uC cm^-2, 
@@ -60,99 +59,6 @@ def polarization_from_path(path, bmin=-5, bmax=5):
 
     return df
 
-def branch_from_polarization(pol, axis=2, start=0):
-    """
-    Extracts the polarization switching branch from the polarization data and a starting polarization,
-    assuming that its monotonically increasing.
-    """
-    branch = []
-    nimages = pol['Image'].nunique()
-    image = 0
-    P = start
-    for i in range(0, nimages):
-        ps = np.sort(pol[pol['Image']==i].iloc[:, axis+1].values)
-
-        min_i = np.argmin(np.abs(ps - P))
-        P = ps[min_i]
-
-        branch.append(P)
-        
-    if len(branch) == nimages:
-        return np.array(branch)
-    else:
-        return None
-
-def branches_from_polarization(pol, axis=2, start=0):
-    """
-    Extracts a list of polarization switching branches from the scatter data.
-    """
-    branches = []
-
-    starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
-    start = starts[0 if start==0 else -1]
-    move_dir = 1 if start == 0 else -1
-
-    branches_over = False
-    while not branches_over:
-        branch = branch_from_polarization(pol, axis=axis, start=start)
-        if branch is None:
-            branches_over = True
-            break
-                
-        branches.append(branch)
-            
-        if move_dir == 1:
-            for s in starts:
-                if s > start:
-                    start = s
-                    break
-        else:
-            for i in range(len(starts)-1, 0):
-                if s > start:
-                    start = s
-                    break
-    
-    return branches
-
-def branches_from_polarization_decreasing(pol, axis=2):
-    """
-    Extracts a list of polarization switching branches from the scatter data.
-    """
-    branches = []
-
-    starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
-    start = starts[-1]
-
-    while (start >= starts).any():
-        branch = branch_from_polarization_decreasing(pol, axis=axis, start=start)
-        if branch is None:
-            break
-                
-        branches.append(branch)
-            
-        for i in range(len(starts)-1, 0):
-            s = starts[i]
-            if s < start:
-                start = s
-                break
-    
-    return branches
-
-def midpoint_branch_from_branches(branches):
-    """
-    Picks the branch that centers around zero the most.
-    """
-    midpoints = [0.5*(branch[len(branch)-1] + branch[0]) for branch in branches]
-    ith = np.argmin(np.abs(midpoints))
-    return branches[ith]
-
-def midpoint_branch_from_polarization(pol, axis=2):
-    """
-    Picks the branch that centers around zero the most from polarization.
-    """
-    branches = branches_from_polarization(pol, axis)
-    return midpoint_branch_from_branches(branches)
-
 class PolarizationPlotter:
     def __init__(self, path=None):
         self.path = path
@@ -163,7 +69,7 @@ class PolarizationPlotter:
     def get_spontaneous(self):
         return 0.5*(self.switch[-1] - self.switch[0])
     
-    def plot(self, show_switch=True, direction=1, save=True):
+    def plot(self, ylim=None, save=True):
         plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
 
         fig, ax = plt.subplots()
@@ -171,10 +77,10 @@ class PolarizationPlotter:
         ax.set_ylabel(r'$P_s\ (\mu C/cm^2)$')
         ax.scatter(self.data['Image'], self.data.iloc[:, 3], s=0.5, color='black')
     
-        if show_switch:
+        if not ylim is None:
             #self.branches = branches_from_polarization(self.data)
             #self.switch = midpoint_branch_from_branches(self.branches)
-            ax.plot(self.switch, 'o-')
+            ax.set_ylim(ylim)
 
         if save:
             fig.savefig(os.path.join(self.path, 'plot.png'), bbox_inches='tight', pad_inches=0.05)

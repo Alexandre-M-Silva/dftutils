@@ -66,13 +66,11 @@ def dftutils():
     show_default=True,
 )
 @click.option(
-    "--branch",
-    "-b",
-    help="Highlight midpoint switch branch.",
+    "--ylim",
+    "-y",
+    help="Y-axis limits.",
     required=False,
-    default=False,
-    is_flag=True,
-    show_default=True,
+    type=click.Tuple([float, float]),
 )
 @click.option(
     "--config",
@@ -82,7 +80,7 @@ def dftutils():
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def polarization(path, save, branch, config):
+def polarization(path, save, ylim, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
@@ -90,7 +88,7 @@ def polarization(path, save, branch, config):
         valid_args = [
             "path",
             "save",
-            "branch",
+            "ylim",
             "config",
         ]
         for key in func_args:
@@ -103,7 +101,7 @@ def polarization(path, save, branch, config):
                 user_settings.pop(key)
 
     pol = PolarizationPlotter(path)
-    pol.plot(branch, save)
+    pol.plot(np.array(ylim), save)
 
 @dftutils.command(
     name="match",
