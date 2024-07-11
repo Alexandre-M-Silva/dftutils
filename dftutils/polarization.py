@@ -169,7 +169,7 @@ class PolarizationPlotter:
         ax.set_xlabel('Image')
         ax.set_ylabel(r'$P_s\ (\mu C/cm^2)$')
         ax.scatter(self.data['Image'], self.data.iloc[:, 3], s=0.5, color='black')
-
+    
         if show_switch:
             #self.branches = branches_from_polarization(self.data)
             #self.switch = midpoint_branch_from_branches(self.branches)
