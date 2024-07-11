@@ -68,6 +68,8 @@ def branch_from_polarization(pol, axis=2, start=0, direction=1):
     nimages = pol['Image'].nunique()
     image = 0
     P = start if start != 0 else np.min(pol[pol["Image"] == 0].iloc[:, axis+1].values)
+    if direction != 1:
+        P = start if start != 0 else np.max(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     for i in range(0, nimages):
         ps = np.sort(pol[pol['Image']==i].iloc[:, axis+1].values)
         if direction == 1:
@@ -102,6 +104,9 @@ def branches_from_polarization(pol, axis=2, direction=1):
 
     starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     start = starts[0]
+    if direction != 1:
+        start = starts[-1]
+        
     while (start <= starts).any():
         branch = branch_from_polarization(pol, axis=axis, start=start, direction=direction)
         if branch is None:
