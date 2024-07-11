@@ -107,16 +107,10 @@ def interp_from_structures(structures: list[Structure],
         lattice = Lattice(l_a)
         frac_coords = start_coords + vec
 
-        new_s = Structure(lattice=lattice,
-                          species=s0.species,
-                          coords=frac_coords,
-                          charge=s0.charge,
-                          validate_proximity=False,
-                          to_unit_cell=False,
-                          coords_are_cartesian=False,
-                          site_properties=None,
-                          labels=None,
-                          properties=None)
+        new_s = s0.copy()
+        new_s.lattice = lattice
+        for s, fc in zip(new_s.sites, frac_coords):
+            s.frac_coords = fc
         interp_structures.append(new_s)
 
     interp_structures.append(structures[-1])
