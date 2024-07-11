@@ -78,16 +78,12 @@ def match_indices_from_paths(path_a, path_b):
     
 def interp_from_structures(structures: list[Structure], 
                            n: int):
-    
-
-
-
-    for i in range(1, len(ts)-2):
-        t = ts[i]
-
+    interp_structures = []
+    ts = np.linspace(0, len(structures)-1, n)
+    for t in ts:
         tmin = int(np.floor(t))
         tmax = int(np.ceil(t))
-        ti = t - float(tmin)
+        ti = 0.5
         
         s0 = structures[tmin]
         s1 = structures[tmax]
@@ -96,7 +92,7 @@ def interp_from_structures(structures: list[Structure],
         end_coords = np.array(s1.frac_coords)
 
         vec = ti * (end_coords - start_coords)
-        vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
+        #vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
         
         _u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
         lvec = ti * (p - np.identity(3))
@@ -104,11 +100,10 @@ def interp_from_structures(structures: list[Structure],
         
         l_a = np.dot(np.identity(3) + lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
         lattice = Lattice(l_a)
-        
+        #lattice = s0.lattice
         frac_coords = start_coords + vec
         interp_structures.append(
             type(s0)(lattice, s0.species_and_occu, frac_coords, site_properties=s0.site_properties, labels=s0.labels)
         )
-    interp_structures.append(structures[len(structures)-1])
 
     return interp_structures
