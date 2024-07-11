@@ -48,8 +48,7 @@ class Neb:
             else:
                 raise Exception(f"Could not find CONTCAR or POSCAR files in {folder}.")
             
-        interp_structures = interp_from_structures(structures, n+2)
-        return Neb(interp_structures)     
+        return Neb(structures)     
 
 class NebData:
     def __init__(self, name: str = None, path: str = None):

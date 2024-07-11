@@ -330,7 +330,82 @@ def neb(path, initial, final, number, output_path, config):
                 user_settings.pop(key)
 
     if not path is None:
-        neb = Neb.from_path(path, number)
+        folders = folders_from_path(path)
+        if len(folders) <= 2:
+            raise ValueError("Not enough numerically named folders on directory to extract a pathway.")
+        
+        structures = []
+        for folder in folders:
+            if os.path.exists(os.path.join(folder, "CONTCAR")):
+                structures.append(Structure.from_file(os.path.join(folder, "CONTCAR")))
+            elif os.path.exists(os.path.join(folder, "POSCAR")):
+                structures.append(Structure.from_file(os.path.join(folder, "POSCAR")))
+            else:
+                raise Exception(f"Could not find CONTCAR or POSCAR files in {folder}.")
+            
+        natoms = len(structures[0].frac_coords)
+        imax = len(structures)-1
+        imin = 0
+
+        interp_dists = np.linspace(0, 1, number)*(imax-imin)
+        interp_basis = np.zeros([3, 3, number])
+        interp_pos = np.zeros([natoms, 3, number])
+        for i in range(0, len(interp_dists)):
+            a = np.floor(interp_dists[i])
+            b = np.ceil(interp_dists[i])
+            t = interp_dists[i]-a
+
+            ap0 = np.array(structures[int(a)].frac_coords)
+            ap1 = np.array(structures[int(b)].frac_coords)
+
+            ab0 = np.array(structures[int(a)].lattice.matrix)
+            ab1 = np.array(structures[int(b)].lattice.matrix)
+
+            if (ap1 - ap0 >= 0.8).any():
+                ap1[(ap1-ap0 >= 0.8)] = - (1.0 - ap1[(ap1-ap0 >= 0.8)])
+
+            if (ap1 - ap0 <= -0.8).any():
+                ap1[(ap1-ap0 <= -0.8)] = (1.0 - ap1[(ap1-ap0 <= -0.8)])
+
+            interp_basis[:, :, i] = ab0 + t*(ab1-ab0)
+            interp_pos[:, :, i] = ap0 + t*(ap1-ap0)
+
+                
+        for i in range(0, number):
+            write_path = format_numeric_folder(output_path, i)
+            if not os.path.exists(write_path):
+                os.mkdir(write_path)
+            
+            POSCAR = open(os.path.join(write_path, "POSCAR"), 'w')
+            
+            # Write POSCAR header
+            POSCAR.write('Structure ' + str(i) + '\n')
+            POSCAR.write('1.00000000000000\n')
+            
+            # Write basis set
+            df_basis = pd.DataFrame(interp_basis[:, :, i])
+            POSCAR.write(df_basis.to_string(header=False, index=False, float_format="{:.16f}".format))
+            POSCAR.write('\n')
+            
+            # Write atom labels & counts
+            POSCAR.write(car_counts.to_string(header=True, index=False, float_format="{:.16f}".format))
+            POSCAR.write('\n')
+            
+            # Write atomic positions method
+            POSCAR.write('Direct')
+            POSCAR.write('\n')
+            
+            # Write atomic positions
+            df_pos = pd.DataFrame(interp_pos[:, :, i])
+            POSCAR.write(df_pos.to_string(header=False, index=False, float_format="{:.16f}".format))
+            POSCAR.write('\n')
+            
+            POSCAR.close()
+
+
+
+        
+
         neb.to_path(output_path)
     elif path is None and not initial is None and not final is None:
         neb = Neb.from_initial_and_final(initial, final, number)
