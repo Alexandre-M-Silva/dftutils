@@ -23,7 +23,7 @@ def polarization_from_path(path, bmin=-5, bmax=5):
     for a given interval of branches.
     """
 
-    e = -1.60218E-19
+    e = 1.60218E-19
     Angstrom = 1e-10
     eV = 1.60218E-19
 
