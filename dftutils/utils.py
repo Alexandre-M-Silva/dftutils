@@ -81,7 +81,8 @@ def interp_from_structures(structures: list[Structure],
     interp_structures = []
     ts = np.linspace(0, 1, n)*(len(structures)-1)
     interp_structures.append(structures[0])
-    for t in ts:
+    for i in range(1, len(ts)-1):
+        t = ts[i]
         tmin = int(np.floor(t))
         tmax = int(np.ceil(t))
         ti = t-float(tmin)
@@ -106,6 +107,6 @@ def interp_from_structures(structures: list[Structure],
         interp_structures.append(
             type(s0)(lattice, s1.species_and_occu, frac_coords, site_properties=s1.site_properties, labels=s1.labels)
         )
-    interp_structures.append(structures[1])
+    interp_structures.append(structures[-1])
 
     return interp_structures
