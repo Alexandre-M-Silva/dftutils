@@ -59,7 +59,7 @@ def polarization_from_path(path, bmin=-5, bmax=5):
 
     return df
 
-def branch_from_polarization(pol, axis=2, start=0, direction=1):
+def branch_from_polarization_increasing(pol, axis=2, start=0):
     """
     Extracts the polarization switching branch from the polarization data and a starting polarization,
     assuming that its monotonically increasing.
@@ -68,26 +68,15 @@ def branch_from_polarization(pol, axis=2, start=0, direction=1):
     nimages = pol['Image'].nunique()
     image = 0
     P = start if start != 0 else np.min(pol[pol["Image"] == 0].iloc[:, axis+1].values)
-    if direction != 1:
-        P = start if start != 0 else np.max(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     for i in range(0, nimages):
         ps = np.sort(pol[pol['Image']==i].iloc[:, axis+1].values)
-        if direction == 1:
-            if (P < ps).any():
-                for p in ps:
-                    if p > P:
-                        P = p
-                        break
-            else:
-                break
+        if (P < ps).any():
+            for p in ps:
+                if p > P:
+                    P = p
+                    break
         else:
-            if (P > ps).any():
-                for p in ps:
-                    if p < P:
-                        P = p
-                        break
-            else:
-                break
+            break
 
         branch.append(P)
         
@@ -96,7 +85,33 @@ def branch_from_polarization(pol, axis=2, start=0, direction=1):
     else:
         return None
 
-def branches_from_polarization(pol, axis=2, direction=1):
+def branch_from_polarization_decreasing(pol, axis=2, start=0):
+    """
+    Extracts the polarization switching branch from the polarization data and a starting polarization,
+    assuming that its monotonically decreasing.
+    """
+    branch = []
+    nimages = pol['Image'].nunique()
+    image = 0
+    P = start if start != 0 else np.max(pol[pol["Image"] == 0].iloc[:, axis+1].values)
+    for i in range(0, nimages):
+        ps = np.sort(pol[pol['Image']==i].iloc[:, axis+1].values)
+        if (P > ps).any():
+            for p in ps:
+                if p < P:
+                    P = p
+                    break
+        else:
+            break
+
+        branch.append(P)
+        
+    if len(branch) == nimages:
+        return np.array(branch)
+    else:
+        return None
+
+def branches_from_polarization_increasing(pol, axis=2):
     """
     Extracts a list of polarization switching branches from the scatter data.
     """
@@ -104,11 +119,9 @@ def branches_from_polarization(pol, axis=2, direction=1):
 
     starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
     start = starts[0]
-    if direction != 1:
-        start = starts[-1]
-        
+
     while (start <= starts).any():
-        branch = branch_from_polarization(pol, axis=axis, start=start, direction=direction)
+        branch = branch_from_polarization_increasing(pol, axis=axis, start=start)
         if branch is None:
             break
                 
@@ -116,6 +129,30 @@ def branches_from_polarization(pol, axis=2, direction=1):
             
         for s in starts:
             if s > start:
+                start = s
+                break
+    
+    return branches
+
+def branches_from_polarization_decreasing(pol, axis=2):
+    """
+    Extracts a list of polarization switching branches from the scatter data.
+    """
+    branches = []
+
+    starts = np.sort(pol[pol["Image"] == 0].iloc[:, axis+1].values)
+    start = starts[-1]
+
+    while (start >= starts).any():
+        branch = branch_from_polarization_decreasing(pol, axis=axis, start=start)
+        if branch is None:
+            break
+                
+        branches.append(branch)
+            
+        for i in range(len(starts)-1, 0):
+            s = starts[i]
+            if s < start:
                 start = s
                 break
     
@@ -129,11 +166,18 @@ def midpoint_branch_from_branches(branches):
     ith = np.argmin(np.abs(midpoints))
     return branches[ith]
 
-def midpoint_branch_from_polarization(pol, axis=2, direction=1):
+def midpoint_branch_from_polarization_increasing(pol, axis=2):
     """
     Picks the branch that centers around zero the most from polarization.
     """
-    branches = branches_from_polarization(pol, axis, direction)
+    branches = branches_from_polarization_increasing(pol, axis)
+    return midpoint_branch_from_branches(branches)
+
+def midpoint_branch_from_polarization_decreasing(pol, axis=2):
+    """
+    Picks the branch that centers around zero the most from polarization.
+    """
+    branches = branches_from_polarization_decreasing(pol, axis)
     return midpoint_branch_from_branches(branches)
 
 class PolarizationPlotter:
@@ -155,8 +199,12 @@ class PolarizationPlotter:
         ax.scatter(self.data['Image'], self.data.iloc[:, 3], s=0.5, color='black')
 
         if show_switch:
-            self.branches = branches_from_polarization(self.data, direction)
-            self.switch = midpoint_branch_from_branches(self.branches)
+            if direction==1:
+                self.branches = branches_from_polarization_increasing(self.data)
+                self.switch = midpoint_branch_from_branches(self.branches)
+            else:
+                self.branches = branches_from_polarization_decreasing(self.data)
+                self.switch = midpoint_branch_from_branches(self.branches)
             ax.plot(self.switch, 'o-')
 
         if save:
