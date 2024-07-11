@@ -81,10 +81,11 @@ def interp_from_structures(structures: list[Structure],
     interp_structures = []
     ts = np.linspace(0, 1, n)*(len(structures)-1)
     interp_structures.append(structures[0])
-    for t in ts[1:len(ts)-2]:
+    for t in ts[1:-2]:
         tmin = int(np.floor(t))
         tmax = int(np.ceil(t))
         ti = (t-float(tmin))/float(tmax-tmin)
+        print(tmin, tmax, ti)
         
         s0 = structures[tmin]
         s1 = structures[tmax]
