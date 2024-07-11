@@ -26,11 +26,12 @@ def polarization_from_path(path, bmin=-5, bmax=5):
     eV = 1.60218E-19
     Angstrom = 1e-10
 
-    outcars, structures = outcars_and_structures_from_path(path)
+    folders = folders_from_path(path)
+    structures = structures_from_folders(folders)
 
     pdata_e = []
     pdata_i = []
-    for folder in folders_from_path(path):
+    for folder in folders:
         pdata_e.append(pelc_vec(os.path.join(folder, "OUTCAR")))
         pdata_i.append(pion_vec(os.path.join(folder, "OUTCAR")))
             
