@@ -23,7 +23,7 @@ def polarization_from_path(path, bmin=-5, bmax=5):
     for a given interval of branches.
     """
 
-    e = -1.60218E-19
+    eV = 1.60218E-19
     Angstrom = 1e-10
 
     outcars, structures = outcars_and_structures_from_path(path)
@@ -54,7 +54,7 @@ def polarization_from_path(path, bmin=-5, bmax=5):
                 ratio = ptotv / quanta
                 n = np.abs(np.round(ratio)) + branch_n
                 dp = ptotv-n*np.sign(ratio)*quanta
-                dp *= 100*e/(Angstrom**2) # uC/cm^2
+                dp *= 100*eV/(Angstrom**2) # uC/cm^2
                 df.loc[len(df.index)] = [i, dp[0], dp[1], dp[2]]
 
     return df
