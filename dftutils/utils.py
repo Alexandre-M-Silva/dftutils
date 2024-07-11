@@ -96,7 +96,7 @@ def interp_from_structures(structures: list[Structure],
         end_coords = np.array(s1.frac_coords)
 
         vec = ti * (end_coords - start_coords)
-        #vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
+        vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
         
         _u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
         lvec = ti * (p - np.identity(3))
@@ -108,9 +108,10 @@ def interp_from_structures(structures: list[Structure],
 
         new_s = s0.copy()
         new_s.lattice = lattice
-        new_s.frac_coords = frac_coords
+        for i in range(0, len(frac_coords)):
+            new_s.frac_coords[i] = frac_coords[i]
         interp_structures.append(new_s)
-        
+
     interp_structures.append(structures[-1])
 
     return interp_structures
