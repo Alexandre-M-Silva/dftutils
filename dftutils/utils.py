@@ -85,8 +85,9 @@ def interp_from_structures(structures: list[Structure],
         t = ts[i]
         tmin = int(np.floor(t))
         tmax = int(np.ceil(t))
-        ti = t-float(tmin)
-        print(t, tmin, tmax, ti)
+        ti = 0
+        if tmin != tmax:
+            ti = (t-float(tmin))/float(tmax-tmin)
         
         s0 = structures[tmin]
         s1 = structures[tmax]
@@ -95,7 +96,7 @@ def interp_from_structures(structures: list[Structure],
         end_coords = np.array(s1.frac_coords)
 
         vec = ti * (end_coords - start_coords)
-        vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
+        #vec[:, s0.pbc] -= np.round(vec[:, s0.pbc])
         
         _u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
         lvec = ti * (p - np.identity(3))
@@ -104,9 +105,12 @@ def interp_from_structures(structures: list[Structure],
         l_a = np.dot(np.identity(3) + lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
         lattice = Lattice(l_a)
         frac_coords = start_coords + vec
-        interp_structures.append(
-            type(s0)(lattice, s1.species_and_occu, frac_coords, site_properties=s1.site_properties, labels=s1.labels)
-        )
+
+        new_s = s0.copy()
+        new_s.lattice = lattice
+        new_s.frac_coords = frac_coords
+        interp_structures.append(new_s)
+        
     interp_structures.append(structures[-1])
 
     return interp_structures
