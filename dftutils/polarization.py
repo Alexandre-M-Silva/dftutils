@@ -4,13 +4,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pymatgen.core as mg
 import pandas as pd
-from pymatgen.io.vasp.outputs import Vasprun
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.io.vasp.outputs import Outcar
-from pymatgen.analysis.ferroelectricity.polarization import Polarization
+import subprocess as sp
+from io import StringIO
 from pymatgen.core import Structure
 
 from dftutils.utils import *
+
+def pion_vec(file):
+    return pd.read_csv(StringIO(sp.run(["grep 'Ionic dipole moment' " + file + " | awk '{print $5,$6,$7}'"], shell=True, capture_output=True).stdout.decode('utf-8').replace('*', '')), header=None, sep=" ", on_bad_lines='skip').values[0]
+      
+def pelc_vec(file):
+    return pd.read_csv(StringIO(sp.run(["grep 'Total electronic dipole moment' " + file + " | awk '{print $6,$7,$8}'"], shell=True, capture_output=True).stdout.decode('utf-8').replace('*', '')), header=None, sep=" ", on_bad_lines='skip').values[0]
+    
 
 def polarization_from_path(path, bmin=-5, bmax=5):
     """
@@ -26,14 +31,9 @@ def polarization_from_path(path, bmin=-5, bmax=5):
 
     pdata_e = []
     pdata_i = []
-    for outcar, structure in zip(outcars, structures):
-        if outcar != None and structure != None:
-            pdata = Polarization.from_outcars_and_structures([outcar], [structure]).get_pelecs_and_pions()
-            pdata_e.append(pdata[0][0])     
-            pdata_i.append(pdata[1][0])           
-        else:
-            pdata_e.append(None)
-            pdata_i.append(None)
+    for folder in folders_from_path(path):
+        pdata_e.append(pelc_vec(os.path.join(folder, "OUTCAR")))
+        pdata_i.append(pion_vec(os.path.join(folder, "OUTCAR")))
             
     branch_count = bmax - bmin + 1
 
