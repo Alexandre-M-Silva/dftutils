@@ -96,8 +96,13 @@ def interp_from_structures(structures: list[Structure],
         start_coords = np.array(s0.frac_coords)
         end_coords = np.array(s1.frac_coords)
 
+        if (end_coords - start_coords >= 0.8).any():
+            end_coords[(end_coords-start_coords >= 0.8)] = - (1.0 - end_coords[(end_coords-start_coords >= 0.8)])
+
+        if (end_coords - start_coords <= -0.8).any():
+            end_coords[(end_coords-start_coords <= -0.8)] = (1.0 - end_coords[(end_coords-start_coords <= -0.8)])
+
         vec = ti * (end_coords - start_coords)
-        vec[:, s1.pbc] -= np.round(vec[:, s1.pbc])
         
         _u, p = polar(np.dot(s1.lattice.matrix.T, np.linalg.inv(s0.lattice.matrix.T)))
         lvec = ti * (p - np.identity(3))
