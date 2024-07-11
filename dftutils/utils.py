@@ -88,6 +88,7 @@ def interp_from_structures(structures: list[Structure],
         ti = 0
         if tmin != tmax:
             ti = (t-float(tmin))/float(tmax-tmin)
+        print(t, tmin, tmax, ti)
         
         s0 = structures[tmin]
         s1 = structures[tmax]
