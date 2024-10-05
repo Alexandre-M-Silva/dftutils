@@ -1,0 +1,6 @@
+[console_scripts]
+dftutils = dftutils.cli:dftutils
+dftutils-match = dftutils.cli:match
+dftutils-neb = dftutils.cli:neb
+dftutils-polarization = dftutils.cli:polarization
+dftutils-strain = dftutils.cli:strain
