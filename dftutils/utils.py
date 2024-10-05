@@ -8,6 +8,11 @@ from pymatgen.core.lattice import Lattice
 
 from scipy.linalg import polar
 
+import matplotlib.pyplot as plt
+
+def use_matplotlib_style():
+    plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
+
 def format_numeric_folder(root, i):
     if i <= 9:
         return os.path.join(root, "{:02d}".format(i))

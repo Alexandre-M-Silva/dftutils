@@ -2,7 +2,6 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import pymatgen.core as mg
 import pandas as pd
 import subprocess as sp
 from io import StringIO
@@ -110,7 +109,7 @@ class PolarizationPlotter:
         return PolarizationPlotter(pol)
     
     def plot(self, axis=2, save=True):
-        plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
+        use_matplotlib_style()
 
         fig, ax = plt.subplots()
         ax.set_xlabel('Image')
