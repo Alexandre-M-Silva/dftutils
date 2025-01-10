@@ -53,6 +53,30 @@ def polarization_from_outcar_structure(outcar_path, structure_path):
 
     return dp, quanta
     
+def polarization_scatter_from_path_v2(path, bmin=-5, bmax=5):
+    """
+    Obtain polarization scatter (multiple branches) in uC cm^-2, 
+    for a given interval of branches.
+    """
+    folders = folders_from_path(path)
+
+    ps, qs = zip(*[
+        polarization_from_outcar_structure(
+            os.path.join(folder, "OUTCAR"),
+            [os.path.join(folder, "CONTCAR"), os.path.join(folder, "POSCAR")]
+        )
+        for folder in folders
+    ])
+
+    datas = []
+    for i in range(0, 3):
+        data = []
+        for p, q in zip(ps, qs):
+            data.append([p[i]+n*q[i]] for n in range(bmax, bmin-1, -1))
+        datas.append(data)
+
+    return [pd.DataFrame(data) for data in datas]
+
 def polarization_scatter_from_path(path, bmin=-5, bmax=5):
     """
     Obtain polarization scatter (multiple branches) in uC cm^-2, 

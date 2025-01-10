@@ -97,7 +97,7 @@ def polarization(outcar, poscar, config):
 
     p, q = polarization_from_outcar_structure(outcar, poscar)
     for j in range(5, -6, -1):
-        print(f"\t{p[0]+j*q[0]:6.2f}\t{p[1]+j*q[1]:6.2f}\t{p[2]+j*q[2]:6.2f}")
+        print(f"{p[0]+j*q[0]:10.2f}\t{p[1]+j*q[1]:10.2f}\t{p[2]+j*q[2]:10.2f}")
 
 @dftutils.command(
     name="polarization-scatter",
