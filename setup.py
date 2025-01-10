@@ -92,7 +92,6 @@ setup(
         "console_scripts": [
             "dftutils = dftutils.cli:dftutils",
             "dftutils-polarization = dftutils.cli:polarization",
-            "dftutils-polarization-scatter = dftutils.cli:polarization_scatter",
             "dftutils-match = dftutils.cli:match",
             "dftutils-strain = dftutils.cli:strain",
             "dftutils-neb = dftutils.cli:neb",

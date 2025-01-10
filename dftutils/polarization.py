@@ -23,11 +23,11 @@ def parse_polarization_from_outcar(path):
                 pelc =  np.array(list(map(float, re.findall(r"[-+]?\d*\.\d+|\d+", line))))
             elif 'Ionic dipole moment' in line:
                 pion = np.array(list(map(float, re.findall(r"[-+]?\d*\.\d+|\d+", line))))\
-                
-    if pion == None or pelc == None:
-        raise ValueError("Error parsing polarization from OUTCAR file.")
     
-    return pelc, pion
+    if isinstance(pion, np.ndarray) and isinstance(pelc, np.ndarray):
+        return pelc, pion
+    else:
+        raise ValueError("Could not find polarization in OUTCAR.")
 
 def polarization_from_outcar_structure(outcar_path, structure_path):
     """
