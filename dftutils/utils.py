@@ -14,44 +14,30 @@ def use_matplotlib_style():
     plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
 
 def format_numeric_folder(root, i):
-    if i <= 9:
-        return os.path.join(root, "{:02d}".format(i))
-    else:
-        return os.path.join(root, "{:d}".format(i))
+    return os.path.join(root, f"{i:02d}" if i <= 9 else f"{i}")
 
 def folders_from_path(root):
-    # TODO: This assumes paths are numbered in a numeric manner, make this smarter.
-    min_f = sys.maxsize
-    max_f = 0
-    for subdir, dirs, files in os.walk(root):
-        for subdir in dirs:
-            if subdir.isnumeric():
-                min_f = min(min_f, int(subdir))
-                max_f = max(max_f, int(subdir))
+    min_f, max_f = sys.maxsize, 0
+    for _, dirs, _ in os.walk(root):
+        numeric_dirs = [int(d) for d in dirs if d.isnumeric()]
+        if numeric_dirs:
+            min_f, max_f = min(numeric_dirs), max(numeric_dirs)
         break
 
-    folders = [format_numeric_folder(root, i) for i in range(min_f, max_f+1)]
-    
-    return folders
+    return [format_numeric_folder(root, i) for i in range(min_f, max_f + 1)]
 
 def outcars_from_folders(folders):
     return [Outcar(os.path.join(folder, 'OUTCAR')) for folder in folders]
-    
+
 def structures_from_folders(folders):
-    folders_with_car = [os.path.join(folder, 'CONTCAR') if os.path.exists(os.path.join(folder, 'CONTCAR')) else os.path.join(folder, 'POSCAR') for folder in folders]    
-    return [Structure.from_file(folder) for folder in folders_with_car]
+    return [Structure.from_file(os.path.join(folder, 'CONTCAR') if os.path.exists(os.path.join(folder, 'CONTCAR')) else os.path.join(folder, 'POSCAR')) for folder in folders]
 
 def outcars_and_structures_from_path(root):
     folders = folders_from_path(root)
-    outcars = outcars_from_folders(folders)
-    structures = structures_from_folders(folders)
-    return outcars, structures
+    return outcars_from_folders(folders), structures_from_folders(folders)
 
 def distance_between_structures(a, b):
-    dist_cum = 0
-    for si, sj in zip(a.sites, b.sites):
-        dist_cum += si.distance(sj)
-    return dist_cum
+    return sum(si.distance(sj) for si, sj in zip(a.sites, b.sites))
 
 def match_indices_from_structs(sta, stb):
     pairings = []
@@ -115,7 +101,7 @@ def interp_from_structures(structures: list[Structure],
         lvec = ti * (p - np.identity(3))
         lstart = s0.lattice.matrix.T
         
-        l_a = np.dot(np.identity(3) + lvec, lstart).T  # type: ignore[reportPossiblyUnboundVariable]
+        l_a = np.dot(np.identity(3) + lvec, lstart).T
         lattice = Lattice(l_a)
         frac_coords = start_coords + vec
 
