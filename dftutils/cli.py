@@ -90,6 +90,11 @@ def polarization(outcar, poscar, config):
             if key not in valid_args:
                 user_settings.pop(key)
 
+    if outcar is None:
+        outcar = "OUTCAR"
+    if poscar is None:
+        poscar = ["CONTCAR", "POSCAR"]
+
     p, q = polarization_from_outcar_structure(outcar, poscar)
     for j in range(5, -6, -1):
         print(f"\t{p[0]+j*q[0]:6.2f}\t{p[1]+j*q[1]:6.2f}\t{p[2]+j*q[2]:6.2f}")
