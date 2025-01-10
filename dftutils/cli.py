@@ -91,11 +91,6 @@ def polarization(outcar, poscar, config):
                 user_settings.pop(key)
 
     p, q = polarization_from_outcar_structure(outcar, poscar)
-    print(f"Px = {p[0]:6.2f} (mod {q[0]:6.2f}) uC/cm^2")
-    print(f"Py = {p[1]:6.2f} (mod {q[1]:6.2f}) uC/cm^2")
-    print(f"Pz = {p[2]:6.2f} (mod {q[2]:6.2f}) uC/cm^2")
-    print("\nSpreads:")
-    print(f"\t{'Px':6s}\t{'Py':6s}\t{'Pz':6s}")
     for j in range(5, -6, -1):
         print(f"\t{p[0]+j*q[0]:6.2f}\t{p[1]+j*q[1]:6.2f}\t{p[2]+j*q[2]:6.2f}")
 
