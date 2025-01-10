@@ -46,6 +46,62 @@ def dftutils():
 @dftutils.command(
     name="polarization",
     context_settings=CONTEXT_SETTINGS,
+    no_args_is_help=False,
+    cls=CommandWithConfigFile("config"),
+)
+@click.option(
+    "--outcar",
+    "-o",
+    help="Path to OUTCAR.",
+    required=False,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--poscar",
+    "-p",
+    help="Path to POSCAR/CONTCAR.",
+    required=False,
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--config",
+    "-conf",
+    help="Config file for advanced settings.",
+    default=None,
+    type=click.Path(exists=True, dir_okay=False),
+    show_default=True,
+)
+def polarization(outcar, poscar, config):
+    user_settings = loadfn(config) if config is not None else {}
+    func_args = list(locals().keys())
+
+    if user_settings:
+        valid_args = [
+            "outcar",
+            "poscar",
+            "config",
+        ]
+        for key in func_args:
+            if key in user_settings:
+                user_settings.pop(key, None)
+
+        for key in list(user_settings.keys()):
+            # remove non-sense keys from user_settings
+            if key not in valid_args:
+                user_settings.pop(key)
+
+    p, q = polarization_from_outcar_structure(outcar, poscar)
+    print(f"Px = {p[0]:6.2f} (mod {q[0]:6.2f}) uC/cm^2")
+    print(f"Py = {p[1]:6.2f} (mod {q[1]:6.2f}) uC/cm^2")
+    print(f"Pz = {p[2]:6.2f} (mod {q[2]:6.2f}) uC/cm^2")
+    print("\nSpreads:")
+    print(f"\t{'Px':6s}\t{'Py':6s}\t{'Pz':6s}")
+    for j in range(5, -6, -1):
+        print(f"\t{p[0]+j*q[0]:6.2f}\t{p[1]+j*q[1]:6.2f}\t{p[2]+j*q[2]:6.2f}")
+
+@dftutils.command(
+    name="polarization-scatter",
+    context_settings=CONTEXT_SETTINGS,
     no_args_is_help=True,
     cls=CommandWithConfigFile("config"),
 )
@@ -80,7 +136,7 @@ def dftutils():
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def polarization(path, save, ylim, config):
+def polarization_scatter(path, save, ylim, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 

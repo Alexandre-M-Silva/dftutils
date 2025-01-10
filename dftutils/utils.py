@@ -66,7 +66,6 @@ def match_indices_from_paths(path_a, path_b):
     sta.to(path_a + "_sorted", fmt='poscar')
     stb.to(path_b + "_sorted", fmt='poscar')
 
-    
 def interp_from_structures(structures: list[Structure], 
                            n: int):
     interp_structures = []
