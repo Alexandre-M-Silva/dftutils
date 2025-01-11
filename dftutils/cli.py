@@ -108,25 +108,18 @@ def polarization(outcar, poscar, config):
 @click.option(
     "--path",
     "-p",
-    help="Path to polarization calculation.",
+    help="Path to polarization calculations root.",
     required=True,
     type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
-    "--save",
-    "-s",
-    help="Highlight midpoint switch pathway.",
+    "--raw",
+    "-r",
+    help="Create figures of Px, Py and Pz scatter.",
     required=False,
     default=False,
     is_flag=True,
     show_default=True,
-)
-@click.option(
-    "--ylim",
-    "-y",
-    help="Y-axis limits.",
-    required=False,
-    type=click.Tuple([float, float]),
 )
 @click.option(
     "--config",
@@ -136,15 +129,14 @@ def polarization(outcar, poscar, config):
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def polarization_scatter(path, save, ylim, config):
+def polarization_scatter(path, raw, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
     if user_settings:
         valid_args = [
             "path",
-            "save",
-            "ylim",
+            "raw",
             "config",
         ]
         for key in func_args:
@@ -156,8 +148,13 @@ def polarization_scatter(path, save, ylim, config):
             if key not in valid_args:
                 user_settings.pop(key)
 
-    pol = PolarizationPlotter(path)
-    pol.plot(np.array(ylim), save)
+    use_matplotlib_style()
+
+    filenames = ['Px', 'Py', 'Pz'] 
+
+    pol = Polarization(path)
+    for i, fn in enumerate(filenames):
+        pol.plot(os.path.join(path, f'{fn}.png'), axis=i)
 
 @dftutils.command(
     name="match",
