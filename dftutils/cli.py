@@ -113,6 +113,14 @@ def polarization(outcar, poscar, config):
     type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
+    "--axis",
+    "-a",
+    help="Select scatter axis.",
+    required=False,
+    type=int,
+    default=None,
+)
+@click.option(
     "--raw",
     "-r",
     help="Create figures of Px, Py and Pz scatter.",
@@ -129,13 +137,14 @@ def polarization(outcar, poscar, config):
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def polarization_scatter(path, raw, config):
+def polarization_scatter(path, axis, raw, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
     if user_settings:
         valid_args = [
             "path",
+            "axis",
             "raw",
             "config",
         ]
@@ -153,9 +162,12 @@ def polarization_scatter(path, raw, config):
     filenames = ['Px', 'Py', 'Pz'] 
 
     pol = Polarization(path)
-    for i, fn in enumerate(filenames):
-        pol.plot(os.path.join(path, f'{fn}.png'), axis=i)
-
+    if axis is not None:
+        for i, fn in enumerate(filenames):
+            pol.plot(os.path.join(path, f'{fn}.png'), axis=i, raw=raw)
+    else:
+        pol.plot(os.path.join(path, f'{filenames[axis]}.png'), axis=axis, raw=raw)
+        
 @dftutils.command(
     name="match",
     context_settings=CONTEXT_SETTINGS,

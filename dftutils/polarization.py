@@ -118,7 +118,7 @@ class Polarization:
         
         return 0.5*(switch[-1] - switch[0])
 
-    def plot(self, path, axis=2):
+    def plot(self, path, axis=2, raw=False):
         fig, ax = plt.subplots()
         
         df = self.data[axis]
@@ -127,12 +127,13 @@ class Polarization:
             x = np.full(shape=y.shape, fill_value=float(series_name))
             ax.scatter(x, y, color='black', s=2)
 
-        _, switch = self.get_branches_and_switch(axis)
-        ax.plot(np.arange(0, len(df.columns)), switch, 'o-', color='red')
+        if not raw:
+            _, switch = self.get_branches_and_switch(axis)
+            ax.plot(np.arange(0, len(df.columns)), switch, 'o-', color='red')
 
-        Ps = self.get_spontaneous(switch)
-        ax.text(0.01, 0.95, rf'Ps = {Ps:6.2f} $\mu C/cm^2$', fontsize=12, color='red',
-                transform = ax.transAxes)
+            Ps = self.get_spontaneous(switch)
+            ax.text(0.01, 0.95, rf'Ps = {Ps:6.2f} $\mu C/cm^2$', fontsize=12, color='red',
+                    transform = ax.transAxes)
 
         ax.set_xlabel("Image")
         ax.set_ylabel(r"$P\ (\mu C/cm^2)$")
