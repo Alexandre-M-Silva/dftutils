@@ -12,12 +12,12 @@ class PolarizationTest(unittest.TestCase):
         print(result.exception)
         self.assertEqual(result.exit_code, 0)
 
-        result = runner.invoke(polarization, ["-s", "-p", "dftutils/tests/data/polarization-scatter/pol_nc"])
+        result = runner.invoke(polarization, ["-s", "-p", "dftutils/tests/data/polarization-scatter/pol_nc", "-ed", "-ef"])
         print(result.output)
         print(result.exception)
         self.assertEqual(result.exit_code, 0)
         
-        result = runner.invoke(polarization, ["-s", "-p", "dftutils/tests/data/polarization-scatter/pol_c"])
+        result = runner.invoke(polarization, ["-s", "-p", "dftutils/tests/data/polarization-scatter/pol_c", "-ed", "-ef"])
         print(result.output)
         print(result.exception)
         self.assertEqual(result.exit_code, 0)

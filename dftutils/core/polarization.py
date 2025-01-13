@@ -141,4 +141,24 @@ class Polarization:
         fig.savefig(path,
                     bbox_inches='tight', 
                     pad_inches=0.05)
+        
+    def print(self, axis=2, switch=False):
+        names = ["Px", "Py", "Pz"]
+        
+        if switch:
+            _, switch = self.get_branches_and_switch(axis)
+            print("\nSwitch")
+            print(switch)
+
+            print(f"\n{names[axis]} = {self.get_spontaneous(switch):10.2f} uC/cm^2")
+        else:
+            print(names[axis])
+        print(self.data[axis].to_string())
+
+    def to_csv(self, path, axis=2):
+        self.data[axis].to_csv(path, index=False, header=False)
+    
+    def switch_to_csv(self, path, axis=2):
+        _, switch = self.get_branches_and_switch(axis)
+        pd.DataFrame(switch).to_csv(path, index=False, header=False)
     

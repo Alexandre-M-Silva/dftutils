@@ -60,6 +60,32 @@ from dftutils.core.utils import use_matplotlib_style
     show_default=True,
 )
 @click.option(
+    "--export-data",
+    "-ed",
+    help="Export data of Px, Py and Pz scatter, a single axis if --axis is specified.",
+    required=False,
+    default=False,
+    is_flag=True,
+    show_default=True,
+)
+@click.option(
+    "--export-figures",
+    "-ef",
+    help="Export figures of Px, Py and Pz scatter, a single axis if --axis is specified.",
+    required=False,
+    default=False,
+    is_flag=True,
+    show_default=True,
+)
+@click.option(
+    "--export-name",
+    "-ep",
+    help="Name to give exported files.",
+    default=None,
+    required=False,
+    type=click.Path(exists=False, dir_okay=True),
+)
+@click.option(
     "--config",
     "-conf",
     help="Config file for advanced settings.",
@@ -67,7 +93,7 @@ from dftutils.core.utils import use_matplotlib_style
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def polarization(scatter, path, outcar, poscar, axis, raw, config):
+def polarization(scatter, path, outcar, poscar, axis, raw, export_data, export_figures, export_name, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
@@ -79,6 +105,9 @@ def polarization(scatter, path, outcar, poscar, axis, raw, config):
             "poscar",
             "axis",
             "raw",
+            "export_data",
+            "export_figures",
+            "export_name",
             "config",
         ]
         for key in func_args:
@@ -99,11 +128,27 @@ def polarization(scatter, path, outcar, poscar, axis, raw, config):
         filenames = ['Px', 'Py', 'Pz'] 
 
         pol = Polarization(path)
+
+        data_export_name = export_name + "_" if export_name is not None else "data_"
+        figure_export_name = export_name + "_" if export_name is not None else "fig_"
+
         if axis is None:
             for i, fn in enumerate(filenames):
-                pol.plot(os.path.join(path, f'{fn}.png'), axis=i, raw=raw)
+                pol.print(i, not raw)
+
+                if export_figures:
+                    pol.plot(os.path.join(path, f'{figure_export_name + fn}.png'), axis=i, raw=raw)
+                if export_data:
+                    pol.to_csv(os.path.join(path, f'{data_export_name + fn}.csv'), i)
+                    pol.switch_to_csv(os.path.join(path, f'{data_export_name + "switch_" + fn}.csv'), i)
         else:
-            pol.plot(os.path.join(path, f'{filenames[axis]}.png'), axis=axis, raw=raw)
+            pol.print(axis, not raw)
+
+            if export_figures:
+                pol.plot(os.path.join(path, f'{figure_export_name + filenames[axis]}.png'), axis=axis, raw=raw)
+            if export_data:
+                pol.to_csv(os.path.join(path, f'{data_export_name + filenames[axis]}.csv'), axis)
+                pol.switch_to_csv(os.path.join(path, f'{data_export_name + "switch_" + filenames[axis]}.csv'), axis)
     else:
         if path is not None:
             outcar = os.path.join(path, "OUTCAR")
