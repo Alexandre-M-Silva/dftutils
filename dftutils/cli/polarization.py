@@ -91,6 +91,9 @@ def polarization(scatter, path, outcar, poscar, axis, raw, config):
                 user_settings.pop(key)
 
     if scatter:
+        if path is None:
+            path = '.'
+
         use_matplotlib_style()
 
         filenames = ['Px', 'Py', 'Pz'] 
