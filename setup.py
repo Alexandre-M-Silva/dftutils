@@ -1,4 +1,4 @@
-"""This is a setup.py script to install ShakeNBreak."""
+"""This is a setup.py script to install dftutils."""
 
 import os
 import warnings
@@ -69,7 +69,7 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
     ],
     keywords="chemistry pymatgen dft defects structure-searching distortions symmetry-breaking",
-    packages=find_packages(),
+    packages=find_packages(include=["dftutils", "dftutils.*"]),
     python_requires=">=3.8",
     install_requires=[
         "numpy",  # >=1.21.2" needed for numpy.typing.NDArray?
@@ -91,11 +91,10 @@ setup(
     entry_points={
         "console_scripts": [
             "dftutils = dftutils.cli:dftutils",
-            "dftutils-polarization = dftutils.cli:polarization",
-            "dftutils-polarization-scatter = dftutils.cli:polarization_scatter",
-            "dftutils-match = dftutils.cli:match",
-            "dftutils-strain = dftutils.cli:strain",
-            "dftutils-neb = dftutils.cli:neb",
+            "dftutils-polarization = dftutils.cli.polarization:polarization",
+            "dftutils-match = dftutils.cli.match:match",
+            "dftutils-strain = dftutils.cli.strain:strain",
+            "dftutils-neb = dftutils.cli.neb:neb",
         ],
     },
     cmdclass={

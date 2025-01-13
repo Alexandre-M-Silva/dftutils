@@ -2,22 +2,24 @@ import unittest
 
 from click.testing import CliRunner
 
-from dftutils.cli import polarization
-from dftutils.cli import polarization_scatter
+from dftutils.cli.polarization import polarization
 
 class PolarizationTest(unittest.TestCase):
     def test_polarization(self):
         runner = CliRunner()
-        result = runner.invoke(polarization, ["-o", "dftutils/tests/data/polarization-scatter/pol_nc/00/OUTCAR", "-p", "dftutils/tests/data/polarization-scatter/pol_nc/00/CONTCAR"])
+        result = runner.invoke(polarization, ["-o", "dftutils/tests/data/polarization-scatter/pol_nc/00/OUTCAR", "-c", "dftutils/tests/data/polarization-scatter/pol_nc/00/CONTCAR"])
         print(result.output)
+        print(result.exception)
         self.assertEqual(result.exit_code, 0)
 
-    def test_polarization_scatter(self):
-        runner = CliRunner()
-        result = runner.invoke(polarization_scatter, ["-p", "dftutils/tests/data/polarization-scatter/pol_nc", "-r"])
+        result = runner.invoke(polarization, ["-s", "-p", "dftutils/tests/data/polarization-scatter/pol_nc"])
+        print(result.output)
+        print(result.exception)
         self.assertEqual(result.exit_code, 0)
         
-        result = runner.invoke(polarization_scatter, ["-p", "dftutils/tests/data/polarization-scatter/pol_c", "-r"])
+        result = runner.invoke(polarization, ["-s", "-p", "dftutils/tests/data/polarization-scatter/pol_c"])
+        print(result.output)
+        print(result.exception)
         self.assertEqual(result.exit_code, 0)
         
 if __name__ == "__main__":

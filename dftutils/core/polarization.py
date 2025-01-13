@@ -8,7 +8,7 @@ from io import StringIO
 from pymatgen.core import Structure
 import re
 
-from dftutils.utils import *
+from dftutils.core.utils import *
 
 eV = 1.60218E-19
 Angstrom = 1e-10
