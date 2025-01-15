@@ -127,7 +127,7 @@ def polarization(scatter, path, outcar, poscar, axis, raw, export_data, export_f
 
         filenames = ['Px', 'Py', 'Pz'] 
 
-        pol = Polarization(path)
+        pol = PolarizationScatter(path)
 
         data_export_name = export_name + "_" if export_name is not None else "data_"
         figure_export_name = export_name + "_" if export_name is not None else "fig_"
@@ -150,20 +150,5 @@ def polarization(scatter, path, outcar, poscar, axis, raw, export_data, export_f
                 pol.to_csv(os.path.join(path, f'{data_export_name + filenames[axis]}.csv'), axis)
                 pol.switch_to_csv(os.path.join(path, f'{data_export_name + "switch_" + filenames[axis]}.csv'), axis)
     else:
-        if path is not None:
-            outcar = os.path.join(path, "OUTCAR")
-            poscar = [os.path.join(path, "CONTCAR"),
-                        os.path.join(path, "POSCAR")]
-        else:
-            if outcar is None:
-                outcar = "OUTCAR"
-            if poscar is None:
-                poscar = ["CONTCAR", "POSCAR"]
-
-        p, q = polarization_from_outcar_structure(outcar, poscar)
-        if axis is None:
-            for j in range(5, -6, -1):
-                print(f"{p[0]+j*q[0]:10.2f}\t{p[1]+j*q[1]:10.2f}\t{p[2]+j*q[2]:10.2f}")
-        else:
-            for j in range(5, -6, -1):
-                print(f"{p[axis]+j*q[axis]:10.2f}")
+        pol = Polarization(path, outcar, poscar)
+        pol.print(axis)

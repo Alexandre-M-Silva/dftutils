@@ -95,11 +95,43 @@ def polarization_branch_derivative_bias(branch):
     grad = np.gradient(branch)
     return np.sum(grad) / len(grad)
 
+
 class Polarization:
+    def __init__(self, path=None, outcar=None, poscar=None):
+        if path is not None:
+            outcar = os.path.join(path, "OUTCAR")
+            poscar = [os.path.join(path, "CONTCAR"),
+                        os.path.join(path, "POSCAR")]
+        else:
+            if outcar is None:
+                outcar = "OUTCAR"
+            if poscar is None:
+                poscar = ["CONTCAR", "POSCAR"]
+    
+        self.p, self.q = polarization_from_outcar_structure(outcar, poscar)
+    
+    def from_path(self, path):
+        return Polarization(path)
+
+    def print(self, axis=2):
+        p = self.p
+        q = self.q
+        if axis is None:
+            for j in range(5, -6, -1):
+                print(f"{p[0]+j*q[0]:10.2f}\t{p[1]+j*q[1]:10.2f}\t{p[2]+j*q[2]:10.2f}")
+        else:
+            for j in range(5, -6, -1):
+                print(f"{p[axis]+j*q[axis]:10.2f}")
+
+class PolarizationScatter:
     def __init__(self, path=None):
-        self.path = path
-        self.data = polarization_scatter_from_path(path)
-        
+        if path is not None:
+            self.path = path
+            self.data = polarization_scatter_from_path(path)
+
+    def from_path(self, path):
+        return PolarizationScatter(path)
+    
     def get_branches_and_switch(self, axis=2):
         starts = self.data[axis].iloc[:, 0].values
         branches = [polarization_branch(self.data[axis], start) for start in starts]
