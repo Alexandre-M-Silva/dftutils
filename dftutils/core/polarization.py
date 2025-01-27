@@ -1,12 +1,10 @@
-import sys
 import os
+import re
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import subprocess as sp
-from io import StringIO
 from pymatgen.core import Structure
-import re
 
 from dftutils.core.utils import *
 
