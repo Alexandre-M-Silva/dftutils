@@ -44,9 +44,9 @@ class Polaron:
 
     def _apply_bdm_to_site_index(self, site_index, amount):
         if self.structure is None:
-            self.structure = self.reference
+            self.structure = self.reference.copy()
 
-        structure = self.reference
+        structure = self.structure
         site = structure.sites[site_index]
         cs = get_neighbors_of_site_with_index(structure, site_index, "voronoi", 0.1, 2.0)
         for c in cs:
