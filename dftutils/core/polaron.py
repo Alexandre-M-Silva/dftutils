@@ -25,7 +25,9 @@ class Polaron:
         return Polaron(Structure.from_dict(d["reference"]), Structure.from_dict(d["structure"]), d["sites"])
     
     def to_dict(self):
-        return {"reference": self.reference.as_dict(), "structure": self.structure.as_dict(), "sites": self.sites}
+        return {"reference": self.reference.as_dict() if self.reference is not None else None, 
+                "structure": self.structure.as_dict() if self.structure is not None else None, 
+                "sites": self.sites}
 
     def from_yaml(path):
         d = loadfn(path)
