@@ -5,6 +5,8 @@ import pandas as pd
 from scipy.interpolate import make_interp_spline
 import matplotlib.pyplot as plt
 
+from dftutils.core.matching import StructureMatcher
+
 from dftutils.core.utils import *
 
 def _format_folder_name(i):
@@ -37,11 +39,21 @@ class Neb:
 
     def from_initial_and_final(initial: Structure | str, 
                                final: Structure | str, 
-                               n: int):
+                               n: int,
+                               match: bool = False):
         if isinstance(initial, str):
             initial = Structure.from_file(initial)
         if isinstance(final, str):
             final = Structure.from_file(final)
+
+        if match:
+            match_config = {
+                "type": "all",
+                "selection": None,
+                "sort_first": False,
+            }
+            matcher = StructureMatcher(initial, final, match_config)
+            initial, final = matcher.match()
 
         structures = [initial, final]
         interp_structures = interp_from_structures(structures, n+2)

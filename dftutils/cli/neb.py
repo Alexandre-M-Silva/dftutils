@@ -58,6 +58,12 @@ from dftutils.core.utils import *
     is_flag=True, 
 )
 @click.option(
+    "--match",
+    "-mt",
+    help="Math initial and final before generating neb.",
+    is_flag=True, 
+)
+@click.option(
     "--config",
     "-conf",
     help="Config file for advanced settings.",
@@ -65,7 +71,7 @@ from dftutils.core.utils import *
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def neb(path, initial, final, number, output_path, movie, config):
+def neb(path, initial, final, number, output_path, movie, match, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
@@ -77,6 +83,7 @@ def neb(path, initial, final, number, output_path, movie, config):
             "number",
             "output-path",
             "movie",
+            "match",
             "config,"
         ]
         for key in func_args:
@@ -97,7 +104,7 @@ def neb(path, initial, final, number, output_path, movie, config):
                 neb = Neb.from_path(path)
                 neb.to_movie(output_path)
     elif initial is not None and final is not None:
-        neb = Neb.from_initial_and_final(initial, final, number)
+        neb = Neb.from_initial_and_final(initial, final, number, match)
         neb.to_path(output_path)
         neb.to_movie(output_path)
     else:
