@@ -7,21 +7,34 @@ import matplotlib.pyplot as plt
 
 from dftutils.core.utils import *
 
+def _format_folder_name(i):
+    return f"{i:02d}" if i <= 9 else f"{i}"
 
 class Neb:
-    def __init__(self,
-                 structures: list[Structure] = None):
+    def __init__(self, structures):
         self.structures = structures
 
     def to_path(self,
                 path: str):
-        folders = [format_numeric_folder(path, i) for i in range(0, len(self.structures)+1)]
+        folders = [_format_folder_name(i) for i in range(0, len(self.structures)+1)]
+        if path is not None:
+            folders = [os.path.join(path, f) for f in folders]
+
         for s, f in zip(self.structures, folders):
             if not os.path.exists(f):
                 os.makedirs(f)
             s.to(os.path.join(f, "POSCAR"), fmt="poscar")
 
-        
+    def to_movie(self,
+                 path: str):
+        final_str = ""
+        for i, s in enumerate(self.structures):
+            final_str += s.to(fmt="poscar")
+
+        final_path = os.path.join(path, "movie.vasp") if path is not None else "movie.vasp"
+        with open(final_path, "w") as f:
+            f.write(final_str)
+
     def from_initial_and_final(initial: Structure | str, 
                                final: Structure | str, 
                                n: int):
@@ -34,8 +47,7 @@ class Neb:
         interp_structures = interp_from_structures(structures, n+2)
         return Neb(interp_structures)
 
-    def from_path(path: str, 
-                  n: int):
+    def from_path(path: str):
         folders = folders_from_path(path)
         if len(folders) <= 2:
             raise ValueError("Not enough numerically named folders on directory to extract a pathway.")
@@ -48,12 +60,11 @@ class Neb:
                 structures.append(Structure.from_file(os.path.join(folder, "POSCAR")))
             else:
                 raise Exception(f"Could not find CONTCAR or POSCAR files in {folder}.")
-            
-        interp_structures = interp_from_structures(structures, n+2)
-        return Neb(interp_structures)     
+        return Neb(structures)   
+
+    def interp(self, n: int):
+        self.structures = interp_from_structures(self.structures, n+2)   
     
-
-
 class NebData:
     def __init__(self, name: str = None, path: str = None):
         if path == None:

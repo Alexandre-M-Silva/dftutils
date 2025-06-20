@@ -1,6 +1,9 @@
 import click
 from monty.serialization import loadfn
 
+import warnings
+warnings.filterwarnings('ignore')
+
 def CommandWithConfigFile(config_file_param_name,):  # can also set CLI options using config file
     """
     Set CLI options using config file.

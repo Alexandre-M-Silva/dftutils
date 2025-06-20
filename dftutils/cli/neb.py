@@ -17,7 +17,7 @@ from dftutils.core.utils import *
     "-p",
     help="Path to directory containing the desired pathway.",
     required=False,
-    default=None,
+    default=".",
     type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
@@ -52,6 +52,12 @@ from dftutils.core.utils import *
     type=click.Path(exists=True, dir_okay=True),
 )
 @click.option(
+    "--movie",
+    "-m",
+    help="Make movie of neb in folder.",
+    is_flag=True, 
+)
+@click.option(
     "--config",
     "-conf",
     help="Config file for advanced settings.",
@@ -59,14 +65,18 @@ from dftutils.core.utils import *
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def neb(path, initial, final, number, output_path, config):
+def neb(path, initial, final, number, output_path, movie, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
     if user_settings:
         valid_args = [
             "path",
-            "strain",
+            "initial",
+            "final",
+            "number",
+            "output-path",
+            "movie",
             "config,"
         ]
         for key in func_args:
@@ -74,16 +84,22 @@ def neb(path, initial, final, number, output_path, config):
                 user_settings.pop(key, None)
 
         for key in list(user_settings.keys()):
-            # remove non-sense keys from user_settings
             if key not in valid_args:   
                 user_settings.pop(key)
 
-    if not path is None:
-        neb = Neb.from_path(path, number)
-        neb.to_path(output_path)
-    elif path is None and not initial is None and not final is None:
+    if initial is None and final is None:
+        if number is not None and output_path is not None:
+            neb = Neb.from_path(path)
+            neb.interp(number)
+            neb.to_path(output_path)
+        else:
+            if movie:
+                neb = Neb.from_path(path)
+                neb.to_movie(output_path)
+    elif initial is not None and final is not None:
         neb = Neb.from_initial_and_final(initial, final, number)
         neb.to_path(output_path)
+        neb.to_movie(output_path)
     else:
         raise Exception(
             f"Path or initial and final images were not defined."

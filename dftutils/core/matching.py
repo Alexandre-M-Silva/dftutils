@@ -54,10 +54,8 @@ class StructureMatcher:
 
         s3 = self.s2.copy()
 
-        for i, _ in enumerate(s3.sites):
-            s3.sites[pairings[i][0]] = self.s2.sites[pairings[i][1]]
-
-        self.s2 = s3.copy()
+        for i, _ in enumerate(self.s2.sites):
+            self.s2.sites[pairings[i][0]] = s3.sites[pairings[i][1]]
 
         return self.s1, self.s2
     
@@ -78,10 +76,8 @@ class StructureMatcher:
 
         s3 = self.s2.copy()
 
-        for i, _ in enumerate(s3.sites):
-            s3.sites[pairings[i][0]] = self.s2.sites[pairings[i][1]]
-
-        self.s2 = s3.copy()
+        for i, _ in enumerate(self.s2.sites):
+            self.s2.sites[pairings[i][0]] = s3.sites[pairings[i][1]]
 
         return self.s1, self.s2
 
