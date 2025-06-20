@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.interpolate import make_interp_spline
 import matplotlib.pyplot as plt
 
-from dftutils.utils import *
+from dftutils.core.utils import *
 
 
 class Neb:
@@ -20,6 +20,7 @@ class Neb:
             if not os.path.exists(f):
                 os.makedirs(f)
             s.to(os.path.join(f, "POSCAR"), fmt="poscar")
+
         
     def from_initial_and_final(initial: Structure | str, 
                                final: Structure | str, 
@@ -50,6 +51,8 @@ class Neb:
             
         interp_structures = interp_from_structures(structures, n+2)
         return Neb(interp_structures)     
+    
+
 
 class NebData:
     def __init__(self, name: str = None, path: str = None):

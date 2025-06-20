@@ -30,6 +30,8 @@ class StructureMatcher:
                     if site.species_string in self.config['selection']:
                         sites.append(site)
                 return self.match_select(sites)
+        else:
+            return self.match_all()
             
     def match_all(self):
         if self.config['sort_first']:
@@ -45,15 +47,17 @@ class StructureMatcher:
             mind = 10000000
             for sj, sb in enumerate(self.s2.sites):
                 d = sa.distance(sb)
-                if d <= mind:
+                if d <= mind and sa.species_string == sb.species_string:
                     mind = d
                     clj = sj
             pairings.append((si, clj))
 
         s3 = self.s2.copy()
 
-        for pair in pairings:
-            self.s2.sites[pair[0]] = s3.sites[pair[1]]
+        for i, _ in enumerate(s3.sites):
+            s3.sites[pairings[i][0]] = self.s2.sites[pairings[i][1]]
+
+        self.s2 = s3.copy()
 
         return self.s1, self.s2
     
@@ -74,8 +78,10 @@ class StructureMatcher:
 
         s3 = self.s2.copy()
 
-        for pair in pairings:
-            self.s2.sites[pair[0]] = s3.sites[pair[1]]
+        for i, _ in enumerate(s3.sites):
+            s3.sites[pairings[i][0]] = self.s2.sites[pairings[i][1]]
+
+        self.s2 = s3.copy()
 
         return self.s1, self.s2
 
