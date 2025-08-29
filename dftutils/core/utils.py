@@ -1,6 +1,7 @@
 import sys
 import os
 import numpy as np
+import importlib.resources
 
 from pymatgen.io.vasp.outputs import Outcar
 from pymatgen.core.structure import Structure
@@ -11,7 +12,8 @@ from scipy.linalg import polar
 import matplotlib.pyplot as plt
 
 def use_matplotlib_style():
-    plt.style.use(os.path.join(os.path.dirname(__file__), 'dftutils.mplstyle'))
+    with importlib.resources.path('dftutils.core', 'dftutils.mplstyle') as style_path:
+        plt.style.use(str(style_path))
 
 def format_numeric_folder(root, i):
     return os.path.join(root, f"{i:02d}" if i <= 9 else f"{i}")

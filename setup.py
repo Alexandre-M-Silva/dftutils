@@ -27,16 +27,6 @@ class PostInstallCommand(install):
         # Perform the usual install process
         install.run(self)
         
-def package_files(directory):
-    """Include package data."""
-    paths = []
-    for path, _dir, filenames in os.walk(directory):
-        paths.extend(os.path.join("..", path, filename) for filename in filenames)
-    return paths
-
-
-input_files = package_files("input_files/")
-
 with open("README.md", encoding="utf-8") as file:
     long_description = file.read()
 
@@ -81,10 +71,10 @@ setup(
         "importlib_metadata",
     ],
     # Specify any non-python files to be distributed with the package
-    package_data={
-        "dftutils": ["dftutils/*", *input_files],
-    },
     include_package_data=True,
+    package_data={
+        "dftutils.core": ["dftutils.mplstyle"],
+    },
     # Specify the custom installation class
     zip_safe=False,
     entry_points={
