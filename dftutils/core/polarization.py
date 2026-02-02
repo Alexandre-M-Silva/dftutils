@@ -26,6 +26,9 @@ def parse_polarization_from_outcar(path):
         return pelc, pion
     else:
         raise ValueError("Could not find polarization in OUTCAR.")
+    
+def energies_from_path(path):
+    return [Outcar(os.path.join(f, "OUTCAR")).final_energy for f in folders_from_path(path)]
 
 def polarization_from_outcar_structure(outcar_path, structure_path):
     """
@@ -125,6 +128,7 @@ class PolarizationScatter:
     def __init__(self, path=None):
         if path is not None:
             self.path = path
+            self.energies = energies_from_path(path)
             self.data = polarization_scatter_from_path(path)
 
     def from_path(self, path):
@@ -185,10 +189,10 @@ class PolarizationScatter:
             print(names[axis])
         print(self.data[axis].to_string())
 
-    def to_csv(self, path, axis=2):
-        self.data[axis].to_csv(path, index=False, header=False)
+    def to_excel(self, path, axis=2):
+        self.data[axis].to_excel(path, index=False)
     
-    def switch_to_csv(self, path, axis=2):
+    def switch_to_excel(self, path, axis=2):
         _, switch = self.get_branches_and_switch(axis)
-        pd.DataFrame(switch).to_csv(path, index=False, header=False)
+        pd.DataFrame({"Energy": self.energies, "P": switch}).to_excel(path, index=False)
     

@@ -217,7 +217,6 @@ def interpolate_structures(
 
     return result
 
-
 def get_gaussian_smeared(energies: np.ndarray, 
                          dos: dict[str, np.ndarray],
                          sigma: float):

@@ -62,7 +62,7 @@ from dftutils.core.utils import use_matplotlib_style
 @click.option(
     "--export-data",
     "-ed",
-    help="Export data of Px, Py and Pz scatter, a single axis if --axis is specified.",
+    help="Export data of Px, Py and Pz scatter, and energy, a single axis if --axis is specified.",
     required=False,
     default=False,
     is_flag=True,
@@ -139,16 +139,16 @@ def polarization(scatter, path, outcar, poscar, axis, raw, export_data, export_f
                 if export_figures:
                     pol.plot(os.path.join(path, f'{figure_export_name + fn}.png'), axis=i, raw=raw)
                 if export_data:
-                    pol.to_csv(os.path.join(path, f'{data_export_name + fn}.csv'), i)
-                    pol.switch_to_csv(os.path.join(path, f'{data_export_name + "switch_" + fn}.csv'), i)
+                    pol.to_excel(os.path.join(path, f'{data_export_name + fn}.xlsx'), i)
+                    pol.switch_to_excel(os.path.join(path, f'{data_export_name + "switch_" + fn}.xlsx'), i)
         else:
             pol.print(axis, not raw)
 
             if export_figures:
                 pol.plot(os.path.join(path, f'{figure_export_name + filenames[axis]}.png'), axis=axis, raw=raw)
             if export_data:
-                pol.to_csv(os.path.join(path, f'{data_export_name + filenames[axis]}.csv'), axis)
-                pol.switch_to_csv(os.path.join(path, f'{data_export_name + "switch_" + filenames[axis]}.csv'), axis)
+                pol.to_excel(os.path.join(path, f'{data_export_name + filenames[axis]}.xlsx'), axis)
+                pol.switch_to_excel(os.path.join(path, f'{data_export_name + "switch_" + filenames[axis]}.xlsx'), axis)
     else:
         pol = Polarization(path, outcar, poscar)
         pol.print(axis)
