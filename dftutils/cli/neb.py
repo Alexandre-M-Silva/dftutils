@@ -64,6 +64,14 @@ from dftutils.core.utils import *
     is_flag=True, 
 )
 @click.option(
+    "--interp-type",
+    "-it",
+    help="Interpolation method.",
+    required=False,
+    type=str,
+    default='linear'
+)
+@click.option(
     "--config",
     "-conf",
     help="Config file for advanced settings.",
@@ -71,7 +79,7 @@ from dftutils.core.utils import *
     type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def neb(path, initial, final, number, output_path, movie, match, config):
+def neb(path, initial, final, number, output_path, movie, match, interp_type, config):
     user_settings = loadfn(config) if config is not None else {}
     func_args = list(locals().keys())
 
@@ -84,6 +92,7 @@ def neb(path, initial, final, number, output_path, movie, match, config):
             "output-path",
             "movie",
             "match",
+            "interp_type",
             "config,"
         ]
         for key in func_args:
@@ -97,7 +106,7 @@ def neb(path, initial, final, number, output_path, movie, match, config):
     if initial is None and final is None:
         if number is not None and output_path is not None:
             neb = Neb.from_path(path)
-            neb.interp(number)
+            neb.interp(number, interp_type)
             neb.to_path(output_path)
         else:
             if movie:

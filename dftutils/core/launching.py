@@ -12,23 +12,25 @@ import warnings
 from pymatgen.core import Structure
 from pymatgen.io.vasp.inputs import Kpoints
 from pymatgen.io.vasp.inputs import Incar
+from pymatgen.io.vasp.inputs import Potcar
 
 from dftutils.core.utils import *
 
-HIGGS_VASP_SETUP_CMD = "module load vasp"
-HIGGS_VASP_RUN_CMD = "mpirun --mca pml ucx /opt/ohpc/pub/apps/vasp/6.5/vasp_std"
+VASP_SETUP_CMD = "module load vasp"
+VASP_RUN_CMD = "mpirun --mca pml ucx /opt/ohpc/pub/apps/vasp/6.5/vasp_std"
 
 def recommend_parallelization(
     poscar: str | Structure,
-    potcar: str,
+    potcar: str | Potcar,
     kpoints: str | Kpoints,
-    partition_info: Dict[str, int],
-    allowed_ncore_values: List[int] = None,
-    min_bands_per_rank: int = 4,
-    max_bands_per_rank: int = 64,
+    max_nodes: int,
+    cores_per_node: int,
+    allowed_ncore_values: int | List[int] = None,
+    min_bands_per_rank: int = 2,
+    max_bands_per_rank: int = 32,
     target_bands_per_rank: int = 8,
     margin_frac: float = 0.2,
-    top_n: int = 8,
+    top_n: int = 10,
     force_kpar: int | None = None,
     force_nbands: int = None,
     unbalanced_kpar_punishment: bool | str = "auto",
@@ -37,11 +39,8 @@ def recommend_parallelization(
     Search for best (nodes, NCORE, KPAR) combos and score them.
     """
     poscar = Structure.from_file(poscar) if isinstance(poscar, str) else poscar
-    potcar = open(potcar, "r")
+    potcar = Potcar.from_file(potcar) if isinstance(potcar, str) else potcar
     kpoints = Kpoints.from_file(kpoints) if isinstance(kpoints, str) else kpoints
-
-    max_nodes = partition_info["Nodes"]
-    cores_per_node = partition_info["CoresPerNode"]
 
     if isinstance(unbalanced_kpar_punishment, str):
         unbalanced_kpar_punishment = False if len(poscar) < 48 else True
@@ -51,7 +50,7 @@ def recommend_parallelization(
 
     if allowed_ncore_values is None:
         allowed_ncore_values = divisors(cores_per_node)
-    allowed_ncore_values = [v for v in allowed_ncore_values if v <= cores_per_node]
+    allowed_ncore_values = [v for v in allowed_ncore_values if v <= cores_per_node] if isinstance(allowed_ncore_values, list) else [allowed_ncore_values]
 
     candidates = []
     for ncore in allowed_ncore_values:
@@ -132,32 +131,59 @@ def recommend_parallelization(
 
     return candidates
 
+def launch_script_write(path: str, 
+                        partition: str, 
+                        nodes: int, 
+                        cores_per_node: int,
+                        vasp_setup_cmd: str = VASP_SETUP_CMD,    
+                        vasp_run_cmd: str = VASP_RUN_CMD):
+    
+    launch_script = f"""#!/bin/bash
+#SBATCH --partition={partition}
+#SBATCH --nodes={int(nodes)}
+#SBATCH --ntasks-per-node={int(cores_per_node)}
+#SBATCH --exclusive
+#SBATCH --mem=0
+
+{vasp_setup_cmd}
+{vasp_run_cmd}
+"""
+
+    with open(path, "w") as f:
+        f.write(launch_script)
+
 def setup_vasp_run(
-    incar_path: str,
-    poscar_path: str,
-    potcar_path: str,
-    kpoints_path: str,
-    partition: str,
-    nodes: int,
-    cores_per_node: int,
-    nbands: int,
-    ncore: int,
-    kpar: int,
-    vasp_setup_cmd: str = HIGGS_VASP_SETUP_CMD,
-    vasp_run_cmd: str = HIGGS_VASP_RUN_CMD,
+    incar: str | Incar,
+    kpoints: str | Kpoints,
+    poscar: str | Structure,
+    potcar: str | Potcar,
+    output_dir: str | Path,
+    nbands: int | None = None,
+    ncore: int | None = None,
+    kpar: int | None = None,
+    launch_script: str | None = None,
+    partition: str | None = None,
+    nodes: int | None = None,
+    cores_per_node: int | None = None,
+    vasp_setup_cmd: str = VASP_SETUP_CMD,
+    vasp_run_cmd: str = VASP_RUN_CMD,
     launch_script_name: str = "launch.sh",
-    output_dir: str | Path | None = None,
 ):
-    output_dir = Path(output_dir) if output_dir else Path(poscar_path).parent
+    incar = incar if isinstance(incar, Incar) else Incar.from_file(incar)
+    kpoints = incar if isinstance(kpoints, Kpoints) else Kpoints.from_file(kpoints)
+    poscar = poscar if isinstance(poscar, Structure) else Structure.from_file(poscar)
+    potcar = potcar if isinstance(potcar, Potcar) else Potcar.from_file(potcar)
+
+    output_dir = Path(output_dir) if isinstance(output_dir, str) else output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    incar = Incar.from_file(incar_path)
-    poscar = Structure.from_file(poscar_path)
-    kpoints = Kpoints.from_file(kpoints_path)
+    if ncore is not None:
+        incar["NCORE"] = int(ncore)
+    if nbands is not None:
+        incar["NBANDS"] = int(nbands)
+    if kpar is not None:
+        incar["KPAR"] = int(kpar)
 
-    incar["NBANDS"] = nbands
-    incar["NCORE"] = ncore
-    incar["KPAR"] = kpar
     incar_out = output_dir / "INCAR"
     incar.write_file(incar_out)
 
@@ -168,65 +194,65 @@ def setup_vasp_run(
     poscar.to(poscar_out, fmt="poscar")
 
     potcar_out = output_dir / "POTCAR"
-    shutil.copy(potcar_path, potcar_out)
+    potcar.write_file(potcar_out)
 
-    launch_script = f"""#!/bin/bash
-#SBATCH --partition={partition}
-#SBATCH --nodes={nodes}
-#SBATCH --ntasks-per-node={cores_per_node}
-#SBATCH --exclusive
-#SBATCH --mem=0
+    if launch_script is None:
+        if partition is None or nodes is None or cores_per_node is None:
+            raise Exception("Partition, nodes and cores_per_node must be set if launch_script is None!")
+        launch_out = output_dir / launch_script_name
+        launch_script_write(launch_out, partition, nodes, cores_per_node, vasp_setup_cmd, vasp_run_cmd)
+    else:
+        launch_out = output_dir / launch_script_name
+        shutil.copy(launch_script, launch_out)
 
-{vasp_setup_cmd}
-{vasp_run_cmd}
-"""
-    launch_out = output_dir / launch_script_name
-    with open(launch_out, "w") as f:
-        f.write(launch_script)
+    return (incar, kpoints, poscar, potcar)
 
 def setup_vasp_run_auto(
-    incar_path: str,
-    poscar_path: str,
-    potcar_path: str,
-    kpoints_path: str,
-    partition_info: Dict[str, int], 
+    incar: str | Incar,
+    kpoints: str | Kpoints,
+    poscar: str | Structure,
+    potcar: str | Potcar,
+    output_dir: str | Path,
+    partition: str,
+    max_nodes: int,
+    cores_per_node: int,
     force_kpar: int | None = None,
-    vasp_setup_cmd: str = HIGGS_VASP_SETUP_CMD,
-    vasp_run_cmd: str = HIGGS_VASP_RUN_CMD,
+    force_ncore: int | None = None,
+    vasp_setup_cmd: str = VASP_SETUP_CMD,
+    vasp_run_cmd: str = VASP_RUN_CMD,
     margin_frac: float = 0.2,
     launch_script_name: str = "launch.sh",
-    output_dir: str | Path | None = None,
-    verbose: bool | None = None,
+    verbose: bool = False,
 ):
     recs = recommend_parallelization(
-        poscar=poscar_path,
-        potcar=potcar_path,
-        kpoints=kpoints_path,
-        max_nodes=partition_info["Nodes"],
-        cores_per_node=partition_info["CoresPerNode"],
+        poscar=poscar,
+        kpoints=kpoints,
+        potcar=potcar,
+        max_nodes=max_nodes,
+        cores_per_node=cores_per_node,
         top_n=1,
         margin_frac=margin_frac,
         force_kpar=force_kpar,
+        allowed_ncore_values=force_ncore,
     )
     best = recs.loc[0]
 
     if verbose:
         print(recs.head(0))
 
-    setup_vasp_run(
-        incar_path=incar_path,
-        poscar_path=poscar_path,
-        potcar_path=potcar_path,
-        kpoints_path=kpoints_path,
-        partition=partition_info["Name"],
-        cores_per_node=partition_info["CoresPerNode"],
-        nodes=best["nodes"],
-        nbands=best["nbands"],
-        ncore=best["ncore"],
-        kpar=best["kpar"],
+    return setup_vasp_run(
+        incar=incar,
+        poscar=poscar,
+        kpoints=kpoints,
+        potcar=potcar,
+        partition=partition,
+        cores_per_node=cores_per_node,
+        nodes=int(best["nodes"]),
+        nbands=int(best["nbands"]),
+        ncore=int(best["ncore"]),
+        kpar=int(best["kpar"]),
         vasp_setup_cmd=vasp_setup_cmd,
         vasp_run_cmd=vasp_run_cmd,
         launch_script_name=launch_script_name,
         output_dir=output_dir,
     )
-

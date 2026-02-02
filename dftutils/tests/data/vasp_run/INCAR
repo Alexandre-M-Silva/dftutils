@@ -1,0 +1,23 @@
+general:
+  GGA=PS
+  ENMAX  = 600
+  EDIFF = 1e-8
+  PREC = ACCURATE 
+  ISMEAR = 0
+  SIGMA = 0.01
+  ALGO = Normal
+  ISYM=0
+  ISPIN=1
+partial charge densities:
+  LWAVEH5 = F
+  LREAL = .FALSE.
+dynamic:
+  ISIF=2
+  IBRION = -1
+  NELMIN = 5
+  NELM=200
+  NSW = 0
+  EDIFFG=-0.001
+DOS:
+  ISTART = 0
+

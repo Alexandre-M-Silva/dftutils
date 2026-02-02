@@ -3,6 +3,9 @@ import os
 import math
 import re
 import warnings
+import datetime
+import collections
+from collections import defaultdict
 from typing import List, Dict, IO
 
 import numpy as np
@@ -15,12 +18,17 @@ import matplotlib.pyplot as plt
 
 from pymatgen.io.vasp.inputs import Incar
 from pymatgen.io.vasp.inputs import Kpoints
+from pymatgen.io.vasp.inputs import Potcar
+from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.vasp.outputs import Outcar
 from pymatgen.core.structure import Structure
 from pymatgen.core.lattice import Lattice
 
 from scipy.ndimage import gaussian_filter1d
 from scipy.linalg import polar
+
+from scipy.interpolate import PchipInterpolator
+
 
 def use_matplotlib_style():
     with importlib.resources.path('dftutils.core', 'dftutils.mplstyle') as style_path:
@@ -122,8 +130,93 @@ def interp_from_structures(structures: list[Structure],
             s.frac_coords = fc
         interp_structures.append(new_s)
 
-
     return interp_structures
+
+def interpolate_structures(
+    structures: list[Structure],
+    nimages: int,
+    interpolate_lattices: bool = False,
+    pbc: bool = True,
+    method: str = "linear",
+) -> list[Structure]:
+
+    if len(structures) < 2:
+        raise ValueError("Need at least two structures")
+
+    if method not in ("linear", "pchip"):
+        raise ValueError("method must be 'linear' or 'pchip'")
+
+    nstruct = len(structures)
+    natoms = len(structures[0])
+
+    # --- Consistency checks ---
+    for i, s in enumerate(structures[1:]):
+        if len(s) != natoms:
+            raise ValueError(f"Structures 0 and {i} have different lengths")
+        for i in range(natoms):
+            if s[i].species != structures[0][i].species:
+                raise ValueError(f"Species mismatch for structure {i}")
+
+        if not interpolate_lattices and s.lattice != structures[0].lattice:
+            raise ValueError("Different lattices but interpolate_lattices=False")
+
+    # --- Reaction coordinate ---
+    x_known = np.linspace(0, 1, nstruct)
+    x_new = np.linspace(0, 1, nimages + 2)
+
+    # --- Fractional coordinates ---
+    coords = np.array([s.frac_coords for s in structures])  # (M, N, 3)
+
+    # Handle PBC displacements relative to first image
+    if pbc:
+        for i in range(1, nstruct):
+            delta = coords[i] - coords[i - 1]
+            delta[:, structures[0].pbc] -= np.round(delta[:, structures[0].pbc])
+            coords[i] = coords[i - 1] + delta
+
+    # --- Coordinate interpolation ---
+    if method == "linear":
+        frac_new = np.empty((len(x_new), natoms, 3))
+        for i, x in enumerate(x_new):
+            frac_new[i] = np.interp(x, x_known, coords.reshape(nstruct, -1)) \
+                            .reshape(natoms, 3)
+    else:
+        interp = PchipInterpolator(x_known, coords, axis=0)
+        frac_new = interp(x_new)
+
+    # --- Lattice interpolation ---
+    if interpolate_lattices:
+        lattices = np.array([s.lattice.matrix for s in structures])
+
+        if method == "linear":
+            lat_new = np.empty((len(x_new), 3, 3))
+            for i, x in enumerate(x_new):
+                lat_new[i] = np.interp(
+                    x, x_known, lattices.reshape(nstruct, -1)
+                ).reshape(3, 3)
+        else:
+            lat_interp = PchipInterpolator(x_known, lattices, axis=0)
+            lat_new = lat_interp(x_new)
+    else:
+        lat_new = [structures[0].lattice.matrix] * len(x_new)
+
+    # --- Build structures ---
+    sp = structures[0].species_and_occu
+    result = []
+
+    for i in range(len(x_new)):
+        result.append(
+            Structure(
+                Lattice(lat_new[i]),
+                sp,
+                frac_new[i],
+                site_properties=structures[0].site_properties,
+                labels=structures[0].labels,
+            )
+        )
+
+    return result
+
 
 def get_gaussian_smeared(energies: np.ndarray, 
                          dos: dict[str, np.ndarray],
@@ -133,54 +226,25 @@ def get_gaussian_smeared(energies: np.ndarray,
     avg_diff = sum(diff) / len(diff)
     return {spin: gaussian_filter1d(dens, sigma / avg_diff) for spin, dens in dos.items()}
 
-
-def potcar_zvals(potcar: str | IO) -> Dict[str, int]:
+def zvals_from_potcar(potcar: str | Potcar) -> Dict[str, int]:
     """
     Parse a POTCAR file and return {element: ZVAL}.
     """
     zvals: Dict[str, int] = {}
-
-    if isinstance(potcar, str):
-        potcar = open(potcar, "r", errors="ignore")
-
-    lines = potcar.readlines()
-
-    for i, line in enumerate(lines):
-        if line.strip().startswith("PAW_"):
-            m = re.search(r"PAW_[A-Z]+(?:\s+)([A-Za-z]{1,2})", line)
-            if not m:
-                continue
-            element = m.group(1).capitalize()
-
-            j = i + 1
-            while j < len(lines) and lines[j].strip() == "":
-                j += 1
-            if j >= len(lines):
-                continue
-
-            token = lines[j].strip().split()[0]
-            try:
-                zval = float(token)
-            except ValueError:
-                m = re.search(r"([0-9]+(?:\.[0-9]+)?)", lines[j])
-                if not m:
-                    raise ValueError(f"Could not find numeric ZVAL after line {j+1}")
-                zval = float(m.group(1))
-
-            zvals[element] = zval
-
-    if not zvals:
-        raise ValueError("No ZVALs found in POTCAR.")
+    potcar = potcar if isinstance(potcar, Potcar) else Potcar.from_file(potcar)
+    for p in potcar:
+        print()
+        zvals[p.element] = p.ZVAL
     return zvals
 
-def structure_symbols_and_counts(structure: str | Structure) -> Dict[str, int]:
+def symbols_and_counts_from_structure(structure: str | Structure) -> Dict[str, int]:
     structure = structure if isinstance(structure, Structure) else Structure.from_file(structure)
     symbols, counts = np.unique([s.species.elements[0].symbol for s in structure.sites], return_counts=True)
     return dict(zip(symbols, counts))
 
 def nelect_from_structure_potcar(structure: str | Structure, potcar: str | IO) -> int:
-    symbols_counts = structure_symbols_and_counts(structure)
-    zvals = potcar_zvals(potcar)
+    symbols_counts = symbols_and_counts_from_structure(structure)
+    zvals = zvals_from_potcar(potcar)
 
     missing_in_potcar = [el for el in symbols_counts if el not in zvals]
     extra_in_potcar = [el for el in zvals if el not in symbols_counts]
@@ -243,3 +307,17 @@ def estimate_nbands(
     bands_per_rank = nbands_adj / total_ranks
     return nbands_adj, total_ranks, ranks_per_node, bands_per_rank
 
+def log(msg, color=None, end="\n", flush=True):
+    """Simple colored, timestamped print."""
+    colors = {
+        "green": "\033[92m",
+        "yellow": "\033[93m",
+        "red": "\033[91m",
+        "blue": "\033[94m",
+        "cyan": "\033[96m",
+        None: "",
+    }
+    reset = "\033[0m"
+    timestamp = datetime.datetime.now().strftime("[%H:%M:%S]")
+    color_code = colors.get(color, "")
+    print(f"{timestamp} {color_code}{msg}{reset}", file=sys.stdout, end=end, flush=flush)
